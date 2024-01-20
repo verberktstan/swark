@@ -44,6 +44,36 @@
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Regarding strings
+
+(defn ->string
+  "Returns `input` coerced to a trimmed string. Returns nil instead of a blank string."
+  [input]
+  (letfn [(non-blank [s] (when-not (str/blank? s) s))]
+    (when input
+      (some-> input name str/trim non-blank))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Regarding keywords
+
+(defn ->keyword
+  "Coerces `input` to a keyword, replacing whitespace with dashes by default."
+  ([input]
+   (->keyword #"\s" input))
+  ([ignore-match input]
+   (->keyword ignore-match "-" input))
+  ([ignore-match replace-with input]
+   (when input
+     (some-> input name str/trim str/lower-case (str/replace ignore-match replace-with) keyword))))
+
+(comment
+  (->keyword :test)
+  (->keyword "hello")
+  (->keyword " H ell-oo1")
+  ;; TODO: Support namespaced keywords :-)
+  )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Minimalistic spec
 
 (defn invalid?
