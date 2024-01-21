@@ -1,4 +1,5 @@
-(ns swark.core)
+(ns swark.core
+  (:require [clojure.string :as str]))
 
 ;; SWiss ARmy Knife - Your everyday clojure toolbelt!
 ;; Copyright 2024 - Stan Verberkt (verberktstan@gmail.com)
@@ -14,16 +15,24 @@
     (-> f ifn? assert)
     (-> coll coll? assert)
     (->> coll
+         (filter f)
          (map (juxt f identity))
-         (filter key)
          (into {}))))
 
 (comment
-  (key-by :id [{:id 0 :name "ab"} {:id 1 :name "cd"}])
-  (key-by nil [{:id 0 :name "ab"} {:id 1 :name "cd"}])
-  (key-by :id nil)
-  (key-by (partial reduce +) [[1 1] [1 2] [2 3 5] [3 5 8 13]])
-  (key-by :user/id [#:user{:id 12 :name "u12"} #:user{:id 23 :name "u23"} {:id 34 :name "not-included!"}])
+  (key-by
+    :id
+    [{:id 0 :name "ab"} {:id 1 :name "cd"}]) ; {0 {:id 0, :name "ab"}, 1 {:id 1, :name "cd"}}
+  (key-by nil [{:id 0 :name "ab"} {:id 1 :name "cd"}]) ; AssertionError - f is nil
+  (key-by :id nil) ; nil
+  (key-by
+    (partial reduce +)
+    [[1 1] [1 2] [2 3 5] [3 5 8 13]]) ; {2 [1 1], 3 [1 2], 10 [2 3 5], 29 [3 5 8 13]}
+  (key-by
+    :user/id
+    [#:user{:id 12 :name "u12"}
+     #:user{:id 23 :name "u23"}
+     {:id 34 :name "not-included!"}]) ; {12 #:user{:id 12, :name "u12"}, 23 #:user{:id 23, :name "u23"}}
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -40,10 +49,12 @@
          (into {}))))
 
 (comment
-  (map-vals inc {:a 1 :b 2 :c 3})
-  (map-vals nil {:a 1 :b 2 :c 3})
-  (map-vals inc nil)
-  (map-vals (partial reduce +) {:a [1 1] :b [1 2] :c [2 3 5] :d [3 5 8 13]})
+  (map-vals inc {:a 1 :b 2 :c 3}) ; {:a 2, :b 3, :c 4}
+  (map-vals nil {:a 1 :b 2 :c 3}) ; AssertionError - f is nil
+  (map-vals inc nil) ; nil
+  (map-vals
+    (partial reduce +)
+    {:a [1 1] :b [1 2] :c [2 3 5] :d [3 5 8 13]}) ; {:a 2, :b 3, :c 10, :d 29} 
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -55,6 +66,13 @@
   (letfn [(non-blank [s] (when-not (str/blank? s) s))]
     (when input
       (some-> input name str/trim non-blank))))
+
+(comment
+  (->string "Hello, Swark!") ; "Hello, Swark!"
+  (->string :keyword2) ; "keyword2"
+  (->string 'symbol3) ; "symbol3"
+  (->string "     ") ; nil
+  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Regarding keywords
