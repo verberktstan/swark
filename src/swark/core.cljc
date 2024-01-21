@@ -15,25 +15,9 @@
     (-> f ifn? assert)
     (-> coll coll? assert)
     (->> coll
-         (filter f)
          (map (juxt f identity))
+         (filter first)
          (into {}))))
-
-(comment
-  (key-by
-    :id
-    [{:id 0 :name "ab"} {:id 1 :name "cd"}]) ; {0 {:id 0, :name "ab"}, 1 {:id 1, :name "cd"}}
-  (key-by nil [{:id 0 :name "ab"} {:id 1 :name "cd"}]) ; AssertionError - f is nil
-  (key-by :id nil) ; nil
-  (key-by
-    (partial reduce +)
-    [[1 1] [1 2] [2 3 5] [3 5 8 13]]) ; {2 [1 1], 3 [1 2], 10 [2 3 5], 29 [3 5 8 13]}
-  (key-by
-    :user/id
-    [#:user{:id 12 :name "u12"}
-     #:user{:id 23 :name "u23"}
-     {:id 34 :name "not-included!"}]) ; {12 #:user{:id 12, :name "u12"}, 23 #:user{:id 23, :name "u23"}}
-  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Regarding maps

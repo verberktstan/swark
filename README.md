@@ -17,6 +17,10 @@ Require swark.core in your ns form:
 Then you can use the Swark utility functions:
 `(swark/key-by :id [{:id 1 :name "one"} {:id 2 :name "two"}])`
 
+## Tests
+
+Run the tests with `clojure -M:test/cognitect`
+
 ## Development
 
 Start a repl with `clojure -M:repl/reloaded`
