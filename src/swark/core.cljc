@@ -7,13 +7,15 @@
 ;; Regarding collections
 
 (defn key-by
-  "Returns a map with all items in collection `coll` keyed by the value returned by `(f item)`"
+  "Returns a map with all items in collection `coll` keyed by the value returned by `(f item)`
+  When `(f item)` returns a falsey value, it is NOT included in the resulting map."
   [f coll]
   (when coll
     (-> f ifn? assert)
     (-> coll coll? assert)
     (->> coll
          (map (juxt f identity))
+         (filter key)
          (into {}))))
 
 (comment
@@ -21,6 +23,7 @@
   (key-by nil [{:id 0 :name "ab"} {:id 1 :name "cd"}])
   (key-by :id nil)
   (key-by (partial reduce +) [[1 1] [1 2] [2 3 5] [3 5 8 13]])
+  (key-by :user/id [#:user{:id 12 :name "u12"} #:user{:id 23 :name "u23"} {:id 34 :name "not-included!"}])
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
