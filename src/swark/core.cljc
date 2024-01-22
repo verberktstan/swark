@@ -35,19 +35,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Regarding strings
 
-(defn ->string
+(defn ->str
   "Returns `input` coerced to a trimmed string. Returns nil instead of a blank string."
   [input]
   (letfn [(non-blank [s] (when-not (str/blank? s) s))]
     (when input
       (some-> input name str/trim non-blank))))
-
-(comment
-  (->string "Hello, Swark!") ; "Hello, Swark!"
-  (->string :keyword2) ; "keyword2"
-  (->string 'symbol3) ; "symbol3"
-  (->string "     ") ; nil
-  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Regarding keywords
