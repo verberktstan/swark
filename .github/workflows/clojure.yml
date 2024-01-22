@@ -55,7 +55,7 @@ jobs:
           restore-keys: cljdeps-
 
       - name: Run clojure tests
-        run: clojure -M:test/cognitect
+        run: clojure -X:test/cognitect
         
       #- name: Get leiningen version
       #  run: lein -v
