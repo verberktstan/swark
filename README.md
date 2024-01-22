@@ -9,7 +9,7 @@ SWiss ARmy Knife - Your everyday clojure toolbelt!
 ### Clojure CLI/deps.edn
 
 Add this dependency to the :deps map in deps.edn
-`org.clojars.stanv/swark {:mvn/version "0.1.2"}`
+`org.clojars.stanv/swark {:mvn/version "0.1.21"}`
 
 Require swark.core in your ns form:
 `(:require [swark.core :as swark])`
