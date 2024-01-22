@@ -19,7 +19,7 @@ Then you can use the Swark utility functions:
 
 ## Tests
 
-Run the tests with `clojure -M:test/cognitect`
+Run the tests with `clojure -X:tests`
 
 ## Development
 

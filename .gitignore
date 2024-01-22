@@ -3,3 +3,5 @@
 /.rebel_readline_history
 /swark-0.1.0.jar.asc
 /swark-0.1.0.pom.asc
+/.clj-kondo/
+/.lsp/

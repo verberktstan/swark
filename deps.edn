@@ -16,12 +16,20 @@
                 "--interactive"
                 "-f" "rebel-readline.main/-main"]}
 
-  :test/cognitect
+  ;; kaocha - comprehensive test runner for Clojure/Script
+  ;; tests.edn should be created for each project
+  ;; https://github.com/lambdaisland/kaocha
+
+  ;; Default test runner using kaocha (change to your own preference)
+  ;; clojure -X:test/run
+  ;; clojure -X:test/run :fail-fast true
+  :test/run
   {:extra-paths ["test"]
-   :extra-deps  {io.github.cognitect-labs/test-runner
-                 {:git/tag "v0.5.1" :git/sha "dfb30dd"}}
-   :main-opts   ["-m" "cognitect.test-runner"]
-   :exec-fn     cognitect.test-runner.api/test}
+   :extra-deps {lambdaisland/kaocha {:mvn/version "1.80.1274"}}
+   :main-opts   ["-m" "kaocha.runner"]
+   :exec-fn kaocha.runner/exec-fn
+   :exec-args {:randomize? false
+               :fail-fast? true}}
 
   :deploy
   {:extra-deps {slipset/deps-deploy {:mvn/version "0.2.2"}}
@@ -38,5 +46,4 @@
   ;; build an uberjar (application) with AOT compilation by default:
   :uberjar {:replace-deps {com.github.seancorfield/depstar {:mvn/version "2.1.303"}}
             :exec-fn      hf.depstar/uberjar
-            :exec-args    {:aot true}}
-  }}
+            :exec-args    {:aot true}}}}
