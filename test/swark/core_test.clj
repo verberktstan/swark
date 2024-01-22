@@ -45,3 +45,11 @@
     "string4"       " string4  "
     nil             "  "
     nil             nil))
+
+(t/deftest ->keyword
+  (t/are [result match replacement input] (= result (sut/->keyword match replacement input))
+    :test     nil          nil :test
+    :hello    nil          nil "hello"
+    :symbol   nil          nil 'symbol
+    :h-ell-o1 nil          nil " H ell-o1"
+    :hello    #"[0-9\s\-]" ""  " H ell-o1"))

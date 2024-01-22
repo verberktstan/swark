@@ -48,12 +48,14 @@
 (defn ->keyword
   "Coerces `input` to a keyword, replacing whitespace with dashes by default."
   ([input]
-   (->keyword #"\s" input))
+   (->keyword nil input))
   ([ignore-match input]
    (->keyword ignore-match "-" input))
-  ([ignore-match replace-with input]
-   (when input
-     (some-> input name str/trim str/lower-case (str/replace ignore-match replace-with) keyword))))
+  ([ignore-match replacement input]
+   (let [match        (or ignore-match #"\s")
+         replacement' (or replacement "-")]
+     (when input
+       (some-> input name str/trim str/lower-case (str/replace match replacement') keyword)))))
 
 (comment
   (->keyword :test)
