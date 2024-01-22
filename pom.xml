@@ -22,10 +22,16 @@
       <url>https://repo.clojars.org/</url>
     </repository>
   </repositories>
-<licenses>
-  <license>
-    <name>CC0 1.0 Universal</name>
-    <url>http://creativecommons.org/publicdomain/zero/1.0?ref=chooser-v1</url>
-  </license>
-</licenses>
+  <scm>
+    <url>https://github.com/verberktstan/swark</url>
+    <connection>scm:git:git://github.com/verberktstan/swark.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/verberktstan/swark.git</developerConnection>
+    <tag>RELEASE-v0.1.1</tag>
+  </scm>
+  <licenses>
+    <license>
+      <name>CC0 1.0 Universal</name>
+      <url>http://creativecommons.org/publicdomain/zero/1.0?ref=chooser-v1</url>
+    </license>
+  </licenses>
 </project>
