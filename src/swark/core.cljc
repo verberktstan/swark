@@ -32,15 +32,6 @@
          (map (juxt key (comp f val)))
          (into {}))))
 
-(comment
-  (map-vals inc {:a 1 :b 2 :c 3}) ; {:a 2, :b 3, :c 4}
-  (map-vals nil {:a 1 :b 2 :c 3}) ; AssertionError - f is nil
-  (map-vals inc nil) ; nil
-  (map-vals
-    (partial reduce +)
-    {:a [1 1] :b [1 2] :c [2 3 5] :d [3 5 8 13]}) ; {:a 2, :b 3, :c 10, :d 29} 
-  )
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Regarding strings
 
