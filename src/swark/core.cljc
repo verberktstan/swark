@@ -66,11 +66,11 @@
   When `item` is nil, returns ::nil.
   When invalid? returns a set of keys from `item` that don't respect `spec`."
   [spec item]
-  (-> spec map? assert)
-  (->> spec vals (every? ifn?) assert)
-  (some-> item map? assert)
+  (-> spec map? (assert "Spec should be a map!"))
+  (assert (->> spec vals (every? ifn?)) "All vals in spec should implement IFn!")
+  (some-> item map? (assert "Item should be a map!"))
   (case item
-    nil ::nil
+    nil ::nil ; Explicit inform that item is nil
     (some->> item
              (merge-with (fn [predicate value] (predicate value)) spec)
              (remove val)
@@ -79,23 +79,3 @@
              set)))
 
 (def valid? (complement invalid?))
-
-(comment
-  (invalid? {:id nat-int?} {:id 0})
-  (valid? {:id nat-int?} {:id 0})
-
-  (invalid? {:id nat-int?} {:id -1})
-  (valid? {:id nat-int?} {:id -1})
-
-  (invalid? nil {:id -1})
-  (valid? nil {:id -1})
-
-  (invalid? {} nil)
-  (valid? {} nil)
-
-  (invalid? {:id nat-int?} nil)
-  (valid? {:id nat-int?} nil)
-
-  (invalid? {:id nat-int?} false)
-  (valid? {:id nat-int?} false)
-  )

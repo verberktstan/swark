@@ -53,3 +53,14 @@
     :symbol   nil          nil 'symbol
     :h-ell-o1 nil          nil " H ell-o1"
     :hello    #"[0-9\s\-]" ""  " H ell-o1"))
+
+(t/deftest spec
+  (t/are [result spec input] (= result (sut/invalid? spec input))
+    nil       {:id nat-int?} {:id 0} ; Valid, so `nil` is returned
+    #{:id}    {:id nat-int?} {:id -1} ; Invalid, so a set of invalid keys is returns
+    ::sut/nil {}             nil ; Nil input, so ::swark/nil is returned
+    ::sut/nil {:id nat-int?} nil)
+  (t/are [msg spec input] (thrown-with-msg? AssertionError msg (sut/valid? spec input))
+    #"Spec should be a map!" nil {:id -1}
+    #"All vals in spec should implement IFn" {:id "not IFn"} {:id -1} ; Spec
+    #"Item should be a map!" {:id nat-int?} false))
