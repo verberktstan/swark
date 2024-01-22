@@ -36,12 +36,12 @@
    :exec-fn    deps-deploy.deps-deploy/deploy
    :exec-args  {:installer      :remote
                 :sign-releases? true
-                :artifact       "swark-0.1.0.jar"}}
+                :artifact       "swark-0.1.1.jar"}}
   :install
   {:extra-deps {slipset/deps-deploy {:mvn/version "0.2.2"}}
    :exec-fn    deps-deploy.deps-deploy/deploy
    :exec-args  {:installer :local
-                :artifact  "swark-0.1.0.jar"}}
+                :artifact  "swark-0.1.1.jar"}}
 
   ;; build an uberjar (application) with AOT compilation by default:
   :uberjar {:replace-deps {com.github.seancorfield/depstar {:mvn/version "2.1.303"}}
