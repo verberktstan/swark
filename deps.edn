@@ -43,6 +43,10 @@
    :exec-args  {:installer :local
                 :artifact  "swark-0.1.21.jar"}}
 
+  #_#_:build {:extra-paths ["build"]
+              :deps        {io.github.seancorfield/build-clj {:git/tag "v0.8.0" :git/sha "9bd8b8a"}}
+              :ns-default  build}
+
   ;; build an uberjar (application) with AOT compilation by default:
   :uberjar {:replace-deps {com.github.seancorfield/depstar {:mvn/version "2.1.303"}}
             :exec-fn      hf.depstar/uberjar

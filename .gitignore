@@ -7,3 +7,4 @@
 /.lsp/
 *.asc
 /deploy
+/build/
