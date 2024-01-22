@@ -5,3 +5,4 @@
 /swark-0.1.0.pom.asc
 /.clj-kondo/
 /.lsp/
+*.asc
