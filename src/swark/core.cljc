@@ -45,6 +45,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Regarding keywords
 
+;; TODO: Support namespaced keywords :-)
 (defn ->keyword
   "Coerces `input` to a keyword, replacing whitespace with dashes by default."
   ([input]
@@ -56,13 +57,6 @@
          replacement' (or replacement "-")]
      (when input
        (some-> input name str/trim str/lower-case (str/replace match replacement') keyword)))))
-
-(comment
-  (->keyword :test)
-  (->keyword "hello")
-  (->keyword " H ell-oo1")
-  ;; TODO: Support namespaced keywords :-)
-  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Minimalistic spec
