@@ -4,6 +4,11 @@ SWiss ARmy Knife - Your everyday clojure toolbelt!
 
 [![Clojars Project](https://img.shields.io/clojars/v/org.clojars.stanv/swark.svg)](https://clojars.org/org.clojars.stanv/swark)
 
+This library contains functionality that you might need every single day as a happy clojure(script) developer.
+The aim is to provide composable functions that you can use everyday, but are just not as trivial as `(some (comp #{42} :answer) answers)`.
+
+All functionality *should* work in both Clojure and Clojurescript.
+
 ## Basic usage
 
 ### Clojure CLI/deps.edn
