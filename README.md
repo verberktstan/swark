@@ -2,7 +2,7 @@
 
 SWiss ARmy Knife - Your everyday clojure toolbelt!
 
-https://clojars.org/org.clojars.stanv/swark
+[![Clojars Project](https://img.shields.io/clojars/v/org.clojars.stanv/swark.svg)](https://clojars.org/org.clojars.stanv/swark)
 
 ## Basic usage
 
