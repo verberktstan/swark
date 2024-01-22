@@ -19,7 +19,7 @@ Then you can use the Swark utility functions:
 
 ## Tests
 
-Run the tests with `clojure -X:tests`
+Run the tests with `clojure -X:test/run`
 
 ## Development
 
