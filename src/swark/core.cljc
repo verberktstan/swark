@@ -61,21 +61,20 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Minimalistic spec
 
-(defn invalid?
-  "Returns nil if map `item` is valid according to map `spec`.
-  When `item` is nil, returns ::nil.
-  When invalid? returns a set of keys from `item` that don't respect `spec`."
-  [spec item]
+(defn invalid-map?
+  "Returns nil if map `input` is valid according to map `spec`.
+  When `input` is nil, returns {::input nil}.
+  When `input` is invalid, returns a map with a report on why it is invalid."
+  [spec input]
   (-> spec map? (assert "Spec should be a map!"))
   (assert (->> spec vals (every? ifn?)) "All vals in spec should implement IFn!")
-  (some-> item map? (assert "Item should be a map!"))
-  (case item
-    nil ::nil ; Explicit inform that item is nil
-    (some->> item
-             (merge-with (fn [predicate value] (predicate value)) spec)
-             (remove val)
+  (some-> input map? (assert "Input should be a map!"))
+  (case input
+    nil {::input input} ; Explicit inform that input is nil
+    (some->> input
+             (merge-with (fn [predicate input] {::predicate predicate ::input input ::result (predicate input)}) spec)
+             (remove (comp ::result val))
              seq
-             (map first)
-             set)))
+             (into {}))))
 
-(def valid? (complement invalid?))
+(def valid-map? (complement invalid-map?))
