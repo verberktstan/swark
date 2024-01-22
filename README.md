@@ -9,7 +9,7 @@ https://clojars.org/org.clojars.stanv/swark
 ### Clojure CLI/deps.edn
 
 Add this dependency to the :deps map in deps.edn
-`org.clojars.stanv/swark {:mvn/version "0.1.0"}`
+`org.clojars.stanv/swark {:mvn/version "0.1.1"}`
 
 Require swark.core in your ns form:
 `(:require [swark.core :as swark])`
