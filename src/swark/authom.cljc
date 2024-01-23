@@ -1,6 +1,8 @@
 (ns swark.authom
   (:require [swark.core :refer [try?]]))
 
+;; swark.authom - Atomic authorisation made easy
+
 (defn- ->hash
   "Returns the hash code of `item`. Tries to find it for collections if standard hashing fails."
   ([item]
