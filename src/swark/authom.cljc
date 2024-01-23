@@ -35,6 +35,13 @@
     #?(:cljs (catch :default nil)
        :clj (catch Throwable _ nil))))
 
+(defn map-with-meta-token
+  "Returns the map `m` with the hashed token in it's metadata. Only accepts a map and primary-key must be present in map `m`."
+  [m primary-key & [pass secret :as args]]
+  (-> m map? assert)
+  (-> m (get primary-key) assert)
+  (merge (apply with-meta-token (select-keys m [primary-key]) args) m))
+
 (comment
   ;; TODO: Turn fiddle code into tests
   (-> {:user/id 123} with-meta-token meta)
@@ -52,6 +59,12 @@
     (assert token)
     (when (= token (apply ->hash item args))
       item)))
+
+(defn map-check-meta-token
+  [m primary-key & [pass secret :as args]]
+  (-> m map? assert)
+  (-> m (get primary-key) assert)
+  (apply check-meta-token (select-keys m [primary-key]) args))
 
 (comment
   ;; TODO: Turn fiddle code into tests
