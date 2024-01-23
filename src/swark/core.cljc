@@ -78,3 +78,14 @@
              (into {}))))
 
 (def valid-map? (complement invalid-map?))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Try and return nil when something is thrown
+
+(defn try?
+  "Returns the result of (apply f args). When any error or exception is trown,
+  returns `nil`."
+  [f & args]
+  (try
+    (apply f args)
+    #?(:cljs (catch :default nil) :clj (catch Throwable _ nil))))
