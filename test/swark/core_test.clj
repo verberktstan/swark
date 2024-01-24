@@ -37,6 +37,23 @@
     (t/is (thrown? AssertionError (sut/map-vals nil m)))
     (t/is (nil? (sut/map-vals inc nil)))))
 
+(t/deftest filter-keys
+  (let [map {:user-id 1 :user/name "Username" ::test "Testdata"}
+        ns-str (namespace ::this)]
+    (t/are [result f] (= result (sut/filter-keys map f))
+      {:user-id 1}            (complement namespace)
+      {:user/name "Username"} (comp #{"user"} namespace)
+      {::test "Testdata"}     (comp #{ns-str} namespace)
+      {}                     (comp #{"unknown"} namespace))))
+
+(t/deftest select-namespaced
+  (let [map {:user-id 1 :user/name "Username" ::test "Testdata"}]
+    (t/are [result ns] (= result (sut/select-namespaced map ns))
+      {:user-id 1}            nil
+      {:user/name "Username"} "user"
+      {::test "Testdata"}     (namespace ::this)
+      {} "unknown")))
+
 (t/deftest ->str
   (t/are [result input] (= result (sut/->str input))
     "Hello, Swark!" "Hello, Swark!"

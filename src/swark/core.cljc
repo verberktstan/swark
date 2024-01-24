@@ -1,5 +1,6 @@
 (ns swark.core
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str])
+  (:import [clojure.lang Named]))
 
 ;; SWiss ARmy Knife - Your everyday clojure toolbelt!
 ;; Copyright 2024 - Stan Verberkt (verberktstan@gmail.com)
@@ -31,6 +32,30 @@
     (->> m
          (map (juxt key (comp f val)))
          (into {}))))
+
+(defn filter-keys
+  [map pred]
+  {:added "0.1.3"
+   :arglists '([map pred])
+   :doc "Returns a map containing only those entries in map whose key return logical true on evaluation of (pred key)."
+   :static true}
+  (cond->> map
+    pred    (filter (comp pred key))
+    map     seq
+    :always (into {})))
+
+(defn select-namespaced
+  {:added "0.1.3"
+   :arglist '([map] [map ns])
+   :doc "Returns a map containing only those entries in map whose keys' namespace match ns. When ns is nil, returns a map containing only non-namespaced keys."
+   :static true}
+  ([map]
+   (select-namespaced map nil))
+  ([map ns]
+   (-> map map? assert)
+   (when-not (string? ns) (some->> ns (instance? Named) assert))
+   (let [predicate (if ns #{(name ns)} nil?)]
+     (filter-keys map (comp predicate namespace)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Regarding strings
