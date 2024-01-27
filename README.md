@@ -13,14 +13,17 @@ All functionality *should* work in both Clojure and Clojurescript.
 
 ### Clojure CLI/deps.edn
 
-Add this dependency to the :deps map in deps.edn
-`org.clojars.stanv/swark {:mvn/version "0.1.21"}`
+Add this dependency to the :deps map in deps.edn:
+
+```org.clojars.stanv/swark {:mvn/version "0.1.21"}```
 
 Require swark.core in your ns form:
-`(:require [swark.core :as swark])`
+
+```(:require [swark.core :as swark])```
 
 Then you can use the Swark utility functions:
-`(swark/key-by :id [{:id 1 :name "one"} {:id 2 :name "two"}])`
+
+```(swark/key-by :id [{:id 1 :name "one"} {:id 2 :name "two"}])```
 
 ## Tests
 
@@ -30,9 +33,13 @@ Run the tests with `clojure -X:test/run`
 
 Start a repl with `clojure -M:repl/reloaded`
 
-Create an uberjar with `clj -X:uberjar :jar swark-x.x.x.jar` (replacing x's with version)
+### Local installation
 
 Install Swark locally with `clj -X:install`
+
+### Jar creation
+
+Create an uberjar with `clj -X:uberjar :jar swark-0.1.21.jar` (replacing x's with version)
 
 ## License
 
