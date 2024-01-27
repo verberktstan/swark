@@ -63,6 +63,11 @@
     nil             "  "
     nil             nil))
 
+(t/deftest unid
+  (t/is (string? (sut/unid)))
+  (t/is (-> #{"x"} sut/unid count #{1}))
+  (t/is (-> (reduce (fn [x _] (conj x (sut/unid x))) #{} (range 999)) count #{999})))
+
 (t/deftest ->keyword
   (t/are [result match replacement input] (= result (sut/->keyword match replacement input))
     :test     nil          nil :test

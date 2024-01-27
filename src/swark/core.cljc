@@ -67,6 +67,18 @@
     (when input
       (some-> input name str/trim non-blank))))
 
+(defn unid
+  ([] (-> (random-uuid) str))
+  ([existing]
+    (-> existing set? assert) 
+    (reduce
+      (fn [s char]
+        (if (and s (-> s existing not) (-> s reverse first #{"-"} not))
+          (reduced s)
+          (str s char)))
+      nil
+      (seq (unid)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Regarding keywords
 
