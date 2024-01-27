@@ -65,8 +65,8 @@
 
 (t/deftest unid
   (t/is (string? (sut/unid)))
-  (t/is (-> #{"a" "b"} sut/unid count #{3}))
-  (t/is (-> (reduce #(unid %1) #{} (range 99)) count #{99})))
+  (t/is (-> #{"x"} sut/unid count #{1}))
+  (t/is (-> (reduce (unid %1) #{} (range 99)) count #{99})))
 
 (t/deftest ->keyword
   (t/are [result match replacement input] (= result (sut/->keyword match replacement input))
