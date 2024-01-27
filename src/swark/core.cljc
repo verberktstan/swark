@@ -68,6 +68,7 @@
       (some-> input name str/trim non-blank))))
 
 (defn unid
+  "Returns a unique string that does is not yet contained in the existing set."
   ([] (-> (random-uuid) str))
   ([existing]
     (-> existing set? assert) 
