@@ -61,11 +61,17 @@
 ;; Regarding strings
 
 (defn ->str
-  "Returns `input` coerced to a trimmed string. Returns nil instead of a blank string."
+  "Returns `input` coerced to a trimmed string. Returns nil instead of a blank string. Returns 'namespace/name' for a namespaced keyword."
   [input]
   (letfn [(non-blank [s] (when-not (str/blank? s) s))]
-    (when input
-      (some-> input name str/trim non-blank))))
+    (or
+      (when (keyword? input)
+        (->> ((juxt namespace name) input)
+          (keep identity)
+          (map ->str)
+          (str/join "/")))
+      (when input
+        (some-> input name str/trim non-blank)))))
 
 (defn unid
   "Returns a unique string that does is not yet contained in the existing set."
