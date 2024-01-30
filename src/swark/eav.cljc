@@ -47,7 +47,7 @@
     ev :entity/value
     a  :attribute
     v  :value}]
-  {[ea ev] a v})
+  {[ea ev] {a v}})
 
 (defn merge-rows
   [parse-props filter- rows]
