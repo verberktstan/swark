@@ -29,3 +29,13 @@
   (t/is (= [{:entity/attribute :user/id :entity/value :two :attribute "name" :value "Arnold"}
             {:entity/attribute :user/id :entity/value :two :attribute "city" :value "Birmingham"}]
            (map (partial sut/parse-row {:entity/value {2 :two} :attribute name}) (sut/->rows :user/id USER2)))))
+
+(t/deftest filter-eav
+  (let [eav1 {:entity/attribute :id
+              :entity/value 1
+              :attribute :username
+              :value "Arnold"}]
+    (t/is (true? (sut/filter-eav {:attribute #{:username} :value #{"Arnold"}} eav1)))
+    (t/is (false? (sut/filter-eav {:attribute #{:username} :value #{"Zorro"}} eav1)))
+    (t/is (true? (sut/filter-eav {:entity/attribute #{:id} :entity/value #{1}})))
+    (t/is (false? (sut/filter-eav {:entity/attribute #{:id} :entity/value #{2}})))))
