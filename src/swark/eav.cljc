@@ -23,15 +23,23 @@
             (map (partial mapv parse [parse-attribute parse-value]))
             (map (partial into entry)))))))
 
+(defn- assert-ifn-vals
+  [props]
+  (when (seq props)
+    (doseq [[k f] props]
+      (-> f ifn? (assert (str k " does not implement IFn!"))))))
+
 (defn- parse-row
   "Returns row as a map with :entity/attribute, :entity/value, :attribute & :value. Applies supplied parsers on the fly."
   ([row]
    (parse-row nil row))
   ([props row]
-   (let [keyseq [:entity/attribute :entity/value :attribute :value]]
+   (let [keyseq [:entity/attribute :entity/value :attribute :value]
+         props  (select-keys props keyseq)]
+     (assert-ifn-vals props)
      (->> row
           (zipmap keyseq)
-          (merge-with parse (select-keys props keyseq))))))
+          (merge-with parse props)))))
 
 (defn parser
   [props]
@@ -39,13 +47,14 @@
 
 (defn- filter-eav
   [props eav-map]
-  (let [props' (select-keys props (keys eav-map))
-        keyseq (keys props')
+  (let [props  (select-keys props (keys eav-map))
+        keyseq (keys props)
         filter-vals (when (seq keyseq) (apply juxt keyseq))]
-    (if-not (seq props')
+    (assert-ifn-vals props)
+    (if-not (seq props)
       true ; Always match when there are no valid props to filter on.
       (->> (select-keys eav-map keyseq)
-           (merge-with parse props')
+           (merge-with parse props)
            filter-vals
            (every? identity)))))
 
