@@ -28,15 +28,15 @@
 
 (defn- filter-eav
   [props eav-map]
-  (let [keyseq (keys props)
-        props' (select-keys props (keys eav-map))
-        filter-vals (apply juxt keyseq)]
+  (let [props' (select-keys props (keys eav-map))
+        keyseq (keys props')
+        filter-vals (when (seq keyseq) (apply juxt keyseq))]
     (if-not (seq props')
-      eav-map
+      true ; Always match when there are no valid props to filter on.
       (->> (select-keys eav-map keyseq)
-        (merge-with parse props')
-        filter-vals
-        (every? identity)))))
+           (merge-with parse props')
+           filter-vals
+           (every? identity)))))
 
 (defn filterer
   [props]

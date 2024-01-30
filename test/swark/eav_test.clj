@@ -1,5 +1,6 @@
 (ns swark.eav-test
-  (:require [clojure.test :as t]
+  (:require [clojure.string :as str]
+            [clojure.test :as t]
             [swark.eav :as sut]))
 
 (def USER {:id 1 :username "Arnold"})
@@ -34,8 +35,31 @@
   (let [eav1 {:entity/attribute :id
               :entity/value 1
               :attribute :username
-              :value "Arnold"}]
-    (t/is (true? (#'sut/filter-eav {:attribute #{:username} :value #{"Arnold"}} eav1)))
-    (t/is (false? (#'sut/filter-eav {:attribute #{:username} :value #{"Zorro"}} eav1)))
-    (t/is (true? (#'sut/filter-eav {:entity/attribute #{:id} :entity/value #{1}} eav1)))
-    (t/is (false? (#'sut/filter-eav {:entity/attribute #{:id} :entity/value #{2}} eav1)))))
+              :value "Arnold"}
+        eav2 {:entity/attribute :user/id
+              :entity/value 2
+              :attribute :user/name
+              :value "Bert"}]
+    (t/are [result props item] (= result (#'sut/filter-eav props item))
+      ;; Filtering based on (namespace part of) the :entity/attribute
+      false {:entity/attribute (comp #{"user"} namespace)} eav1
+      true  {:entity/attribute (comp #{"user"} namespace)} eav2
+
+      ;; Filtering on the :entity/attribute and :entity/value
+      true  {:entity/attribute #{:id} :entity/value #{1}} eav1
+      false {:entity/attribute #{:id} :entity/value #{1}} eav2
+
+      ;; Filtering on the :attribute
+      false {:attribute (comp #{"user"} namespace)} eav1
+      true  {:attribute (comp #{"user"} namespace)} eav2
+
+      ;; Filtering on the :value
+      true  {:value (comp #(str/starts-with? % "a") str/lower-case)} eav1
+      false {:value (comp #(str/starts-with? % "a") str/lower-case)} eav2
+
+      ;; Filtering on a combination of these
+      false {:entity/attribute #{:user/id} :entity/value #{2} :attribute (comp #{"user"} namespace)} eav1
+      true  {:entity/attribute #{:user/id} :entity/value #{2} :attribute (comp #{"user"} namespace)} eav2
+
+      ;; Always match, when unsupported props are supplied
+      true {:something "else"} eav1)))
