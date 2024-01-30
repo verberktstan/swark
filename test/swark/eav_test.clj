@@ -37,5 +37,5 @@
               :value "Arnold"}]
     (t/is (true? (#'sut/filter-eav {:attribute #{:username} :value #{"Arnold"}} eav1)))
     (t/is (false? (#'sut/filter-eav {:attribute #{:username} :value #{"Zorro"}} eav1)))
-    (t/is (true? (#'sut/filter-eav {:entity/attribute #{:id} :entity/value #{1}})))
-    (t/is (false? (#'sut/filter-eav {:entity/attribute #{:id} :entity/value #{2}})))))
+    (t/is (true? (#'sut/filter-eav {:entity/attribute #{:id} :entity/value #{1}} eav1)))
+    (t/is (false? (#'sut/filter-eav {:entity/attribute #{:id} :entity/value #{2}} eav1)))))
