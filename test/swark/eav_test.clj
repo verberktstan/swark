@@ -1,5 +1,6 @@
 (ns swark.eav-test
-  (:require [clojure.string :as str]
+  (:require [clojure.edn :as edn]
+            [clojure.string :as str]
             [clojure.test :as t]
             [swark.eav :as sut]))
 
@@ -63,3 +64,27 @@
 
       ;; Always match, when unsupported props are supplied
       true {:something "else"} eav1)))
+
+(t/deftest merge-rows
+  (t/testing "Parse, filter and merge rows from a line-seq (e.g. csv-rows)"
+    (t/is (= {[:id 1] {:id 1 :username "Arnold"}
+              [:user/id 2] #:user{:id 2 :name "Bert"}}
+             (sut/merge-rows
+              {:entity/attribute keyword :entity/value edn/read-string :attribute keyword :value identity}
+              nil
+              [["id" "1" "username" "Arnold"]
+               ["user/id" "2" "user/name" "Bert"]])))
+
+    (t/is (= {[:id 1] {:id 1 :username "Arnold"}}
+             (sut/merge-rows
+              {:entity/attribute keyword :entity/value edn/read-string :attribute keyword :value identity}
+              {:entity/value #{1}}
+              [["id" "1" "username" "Arnold"]
+               ["user/id" "2" "user/name" "Bert"]])))
+
+    (t/is (= {[:user/id 2] #:user{:id 2 :name "Bert"}}
+             (sut/merge-rows
+              {:entity/attribute keyword :entity/value edn/read-string :attribute keyword :value identity}
+              {:entity/attribute (comp #{"user"} namespace)}
+              [["id" "1" "username" "Arnold"]
+               ["user/id" "2" "user/name" "Bert"]])))))
