@@ -26,7 +26,7 @@
   [props]
   (map (partial parse-row props)))
 
-(defn filter-eav
+(defn- filter-eav
   [props eav-map]
   (let [keyseq (keys props)
         props' (select-keys props (keys eav-map))
