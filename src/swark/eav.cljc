@@ -12,7 +12,7 @@
 
 (defn- parse [f input] (f input))
 
-(defn parse-row
+(defn- parse-row
   "Returns row as a map with :entity/attribute, :entity/value, :attribute & :value. Applies supplied parsers on the fly."
   ([row]
    (parse-row nil row))
@@ -21,3 +21,21 @@
      (->> row
           (zipmap keyseq)
           (merge-with parse (select-keys props keyseq))))))
+
+(defn parser
+  [props]
+  (map (partial parse-row props)))
+
+(defn filter-eav
+  [props eav-map]
+  (let [keyseq (keys props)
+        props' (select-keys props (keys eav-map))
+        filter-vals (apply juxt keyseq)]
+    (->> (select-keys eav-map keyseq)
+      (merge-with parse props')
+      filter-vals
+      (some identity))))
+
+(defn filterer
+  [props]
+  (filter (partial filter-eav prpps)))
