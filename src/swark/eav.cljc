@@ -31,10 +31,12 @@
   (let [keyseq (keys props)
         props' (select-keys props (keys eav-map))
         filter-vals (apply juxt keyseq)]
-    (->> (select-keys eav-map keyseq)
-      (merge-with parse props')
-      filter-vals
-      (some identity))))
+    (if-not (seq props')
+      eav-map
+      (->> (select-keys eav-map keyseq)
+        (merge-with parse props')
+        filter-vals
+        (every? identity)))))
 
 (defn filterer
   [props]
