@@ -40,4 +40,4 @@
 
 (defn filterer
   [props]
-  (filter (partial filter-eav prpps)))
+  (filter (partial filter-eav props)))
