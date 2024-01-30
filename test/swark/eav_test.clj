@@ -2,6 +2,7 @@
   (:require [clojure.edn :as edn]
             [clojure.string :as str]
             [clojure.test :as t]
+            [swark.core :as swark]
             [swark.eav :as sut]))
 
 (def USER {:id 1 :username "Arnold"})
@@ -9,28 +10,35 @@
 
 (t/deftest ->rows
   (t/is (= [[:id 1 :username "Arnold"]]
-           (sut/->rows :id USER)))
+           (sut/->rows USER)))
   (t/is (= [[:user/id 2 :user/name "Arnold"]
             [:user/id 2 :user/city "Birmingham"]]
-           (sut/->rows :user/id USER2)))
+           (sut/->rows USER2 {:primary/key :user/id})))
   (t/is (= [[:city/id 3 :city/name "Birmingham"]
             [:city/id 4 :city/name "Cork"]]
            (mapcat
-             (partial sut/->rows :city/id)
-             [#:city{:id 3 :name "Birmingham"}
-              #:city{:id 4 :name "Cork"}]))))
+            #(sut/->rows % {:primary/key :city/id})
+            [#:city{:id 3 :name "Birmingham"}
+             #:city{:id 4 :name "Cork"}])))
+  (t/is (= [["user/id" "2" "user/name" "Arnold"]
+            ["user/id" "2" "user/city" "Birmingham"]]
+           (sut/->rows USER2 {:primary/key :user/id
+                              :entity/attribute swark/->str
+                              :entity/value str
+                              :attribute swark/->str
+                              :value name}))))
 
 (t/deftest parse-row
   (t/is (= [{:entity/attribute :id :entity/value 1 :attribute :username :value "Arnold"}]
-           (map #'sut/parse-row (sut/->rows :id USER))))
+           (map #'sut/parse-row (sut/->rows USER))))
   (t/is (= [{:entity/attribute :user/id :entity/value 2 :attribute :user/name :value "Arnold"}
             {:entity/attribute :user/id :entity/value 2 :attribute :user/city :value "Birmingham"}]
-           (map #'sut/parse-row (sut/->rows :user/id USER2))))
+           (map #'sut/parse-row (sut/->rows USER2 {:primary/key :user/id}))))
   (t/is (= [{:entity/attribute :id :entity/value 1 :attribute "username" :value "Arnold"}]
-           (map (partial #'sut/parse-row {:attribute name}) (sut/->rows :id USER))))
+           (map (partial #'sut/parse-row {:attribute name}) (sut/->rows USER))))
   (t/is (= [{:entity/attribute :user/id :entity/value :two :attribute "name" :value "Arnold"}
             {:entity/attribute :user/id :entity/value :two :attribute "city" :value "Birmingham"}]
-           (map (partial #'sut/parse-row {:entity/value {2 :two} :attribute name}) (sut/->rows :user/id USER2)))))
+           (map (partial #'sut/parse-row {:entity/value {2 :two} :attribute name}) (sut/->rows USER2 {:primary/key :user/id})))))
 
 (t/deftest filter-eav
   (let [eav1 {:entity/attribute :id

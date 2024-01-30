@@ -2,15 +2,26 @@
 
 ;; Storing data as Entity / Attribute / Value rows
 
+(defn- parse [f input] (f input))
+
 (defn ->rows
   "Returns a sequence of vectors with [entity-attribute entity-value attribute value]
   for each map-entry in map m."
-  [primary-key m]
-  (let [entry (find m primary-key)]
-    (assert entry "Mapentry can't be found!")
-    (map (partial into entry) (dissoc m primary-key))))
-
-(defn- parse [f input] (f input))
+  ([m] (->rows m nil))
+  ([m {primary-key :primary/key
+       parse-entity-attribute :entity/attribute
+       parse-entity-value :entity/value
+       parse-attribute :attribute
+       parse-value     :value
+       :or {primary-key            :id
+            parse-entity-attribute identity parse-entity-value identity
+            parse-attribute        identity parse-value        identity}}]
+   (let [entry (find m primary-key)]
+     (assert entry "Mapentry can't be found!")
+     (let [entry (mapv parse [parse-entity-attribute parse-entity-value] entry)]
+       (->> (dissoc m primary-key)
+            (map (partial mapv parse [parse-attribute parse-value]))
+            (map (partial into entry)))))))
 
 (defn- parse-row
   "Returns row as a map with :entity/attribute, :entity/value, :attribute & :value. Applies supplied parsers on the fly."
