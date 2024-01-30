@@ -41,3 +41,19 @@
 (defn filterer
   [props]
   (filter (partial filter-eav props)))
+
+(defn mapify
+  [{ea :entity/attribute
+    ev :entity/value
+    a  :attribute
+    v  :value}]
+  {[ea ev] a v})
+
+(defn merge-rows
+  [parse-props filter- rows]
+  (transduce
+    (comp (parser parse-props)
+          (filterer filter-props)
+          mapify)
+    (partial merge-with merge)
+    rows))
