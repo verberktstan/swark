@@ -64,8 +64,12 @@
   "Returns `input` coerced to a trimmed string. Returns nil instead of a blank string."
   [input]
   (letfn [(non-blank [s] (when-not (str/blank? s) s))]
-    (when input
-      (some-> input name str/trim non-blank))))
+    (if (keyword? input) ; TODO: Add test for keyword case
+      (->> ((juxt (comp ->str namespace) (comp ->str name)) input)
+        (keep identity)
+        (str/join "/"))
+      (when input
+        (some-> input name str/trim non-blank)))))
 
 (defn unid
   "Returns a unique string that does is not yet contained in the existing set."
