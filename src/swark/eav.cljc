@@ -50,7 +50,7 @@
   {[ea ev] {a v}})
 
 (defn merge-rows
-  [parse-props filter- rows]
+  [parse-props filter-props rows]
   (transduce
     (comp (parser parse-props)
           (filterer filter-props)
