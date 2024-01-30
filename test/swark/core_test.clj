@@ -57,11 +57,13 @@
 (t/deftest ->str
   (t/are [result input] (= result (sut/->str input))
     "Hello, Swark!" "Hello, Swark!"
-    "keyword2"      :keyword2
-    "symbol3"       'symbol3
-    "string4"       " string4  "
-    nil             "  "
-    nil             nil))
+    "keyword2"           :keyword2
+    "user/id"            :user/id
+    "swark.core-test/id" ::id
+    "symbol3"            'symbol3
+    "string4"            " string4  "
+    nil                  "  "
+    nil                  nil))
 
 (t/deftest unid
   (t/is (string? (sut/unid)))

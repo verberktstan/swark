@@ -61,13 +61,15 @@
 ;; Regarding strings
 
 (defn ->str
-  "Returns `input` coerced to a trimmed string. Returns nil instead of a blank string."
+  "Returns `input` coerced to a trimmed string. Returns nil instead of a blank string. Returns 'namespace/name' for a namespaced keyword."
   [input]
   (letfn [(non-blank [s] (when-not (str/blank? s) s))]
-    (if (keyword? input) ; TODO: Add test for keyword case
-      (->> ((juxt (comp ->str namespace) (comp ->str name)) input)
-        (keep identity)
-        (str/join "/"))
+    (or
+      (when (keyword? input)
+        (->> ((juxt namespace name) input)
+          (keep identity)
+          (map ->str)
+          (str/join "/")))
       (when input
         (some-> input name str/trim non-blank)))))
 
