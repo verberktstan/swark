@@ -41,7 +41,7 @@
                      (zipmap keyseq)
                      (merge-with parse props))
          ea-vector (juxt :entity/attribute :attribute)
-         v-parser  (get parsers (ea-vector m))]
+         v-parser  (get parsers (ea-vector item))]
      (cond-> item v-parser (update :value v-parser)))))
 
 (defn parser
