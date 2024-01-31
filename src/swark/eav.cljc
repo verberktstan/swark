@@ -1,4 +1,6 @@
-(ns swark.eav)
+(ns swark.eav
+  {:added "0.1.3"
+   :doc "Serialize and parse data as entity-atteibute-value rows."})
 
 ;; Storing data as Entity / Attribute / Value rows
 

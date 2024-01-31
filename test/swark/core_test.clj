@@ -83,8 +83,8 @@
   (t/are [result spec input] (= result (sut/invalid-map? spec input))
     nil       {:id nat-int?} {:id 0} ; Valid, so `nil` is returned
     {:id report} {:id nat-int?} {:id -1} ; Invalid, so a set of invalid keys is returns
-    {::sut/input nil} {}             nil ; Nil input, so ::swark/nil is returned
-    {::sut/input nil} {:id nat-int?} nil)
+    ::sut/nil    {}             nil ; Nil input, so ::swark/nil is returned
+    ::sut/nil {:id nat-int?} nil)
   (t/are [msg spec input] (thrown-with-msg? AssertionError msg (sut/valid-map? spec input))
     #"Spec should be a map!" nil {:id -1}
     #"All vals in spec should implement IFn" {:id "not IFn"} {:id -1} ; Spec

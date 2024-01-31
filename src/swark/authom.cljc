@@ -1,4 +1,6 @@
 (ns swark.authom
+  {:added "0.1.3"
+   :doc "(Re)store auth related stuff in clojure metadata."}
   (:require [swark.core :refer [try?]]))
 
 ;; swark.authom - Atomic authorisation made easy
