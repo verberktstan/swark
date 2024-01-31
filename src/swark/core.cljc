@@ -44,6 +44,17 @@
     map     seq
     :always (into {})))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Try and return nil when something is thrown
+
+(defn try?
+  "Returns the result of (apply f args). When any error or exception is trown,
+  returns `nil`."
+  [f & args]
+  (try
+    (apply f args)
+    #?(:cljs (catch :default _ nil) :clj (catch Throwable _ nil))))
+
 (defn select-namespaced
   {:added "0.1.3"
    :arglist '([map] [map ns])
@@ -53,8 +64,8 @@
    (select-namespaced map nil))
   ([map ns]
    (-> map map? assert)
-   (when-not (string? ns) (some->> ns (instance? Named) assert))
-   (let [predicate (if ns #{(name ns)} nil?)]
+   (let [ns (try? name ns)
+         predicate (if ns #{ns} nil?)]
      (filter-keys map (comp predicate namespace)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -122,14 +133,3 @@
              (into {}))))
 
 (def valid-map? (complement invalid-map?))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Try and return nil when something is thrown
-
-(defn try?
-  "Returns the result of (apply f args). When any error or exception is trown,
-  returns `nil`."
-  [f & args]
-  (try
-    (apply f args)
-    #?(:cljs (catch :default nil) :clj (catch Throwable _ nil))))
