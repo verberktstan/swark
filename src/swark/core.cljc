@@ -35,7 +35,7 @@
    `(map-vals inc {:a 1}) => {:a 2}`"
    :static true}
   [f item]
-  (when m
+  (when item
     (-> f ifn? assert)
     (-> item map? assert)
     (->> item
