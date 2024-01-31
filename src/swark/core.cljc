@@ -9,8 +9,13 @@
 ;; Regarding collections
 
 (defn key-by
-  "Returns a map with all items in collection `coll` keyed by the value returned by `(f item)`
-  When `(f item)` returns a falsey value, it is NOT included in the resulting map."
+  {:added "0.1.0"
+   :arglist '([f coll])
+   :doc "Returns a map containing (all) items in coll, associated by the
+   return value of (f val). When the key is logical false, it is not included in
+   the returned map.
+   `(key-by count [[:a] [:b :c]]) => {1 [:a] 2 [:b :c]}`"
+   :static true}
   [f coll]
   (when coll
     (-> f ifn? assert)
@@ -24,12 +29,16 @@
 ;; Regarding maps
 
 (defn map-vals
-  "Returns map `m` with function `f` applied to all its values."
-  [f m]
+  {:added "0.1.0"
+   :arglist '([f item])
+   :doc "Returns item with f mapped across it's values.
+   `(map-vals inc {:a 1}) => {:a 2}`"
+   :static true}
+  [f item]
   (when m
     (-> f ifn? assert)
-    (-> m map? assert)
-    (->> m
+    (-> item map? assert)
+    (->> item
          (map (juxt key (comp f val)))
          (into {}))))
 
