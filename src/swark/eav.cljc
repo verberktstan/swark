@@ -30,22 +30,19 @@
       (-> f ifn? (assert (str k " does not implement IFn!"))))))
 
 (defn- parse-row
-  "Returns row as a map with :entity/attribute, :entity/value, :attribute & :value. Applies supplied parsers on the fly."
+  "Returns row as a map with :entity/attribute, :entity/value, :attribute & :value. Applies supplied parsers on the fly for thise mapentries. You can supply a value parser lookup via :value/parsers, if a parser can be found by [:entity/attribute :attribute], this is used to parse the :value of the row's eav-map."
   ([row]
    (parse-row nil row))
-  ([props row]
+  ([{:value/keys [parsers] props} row]
    (let [keyseq [:entity/attribute :entity/value :attribute :value]
-         props  (select-keys props keyseq)]
-     (assert-ifn-vals props)
-     (->> row
-          (zipmap keyseq)
-          (merge-with parse props))))
-  ([props lookup row] ;TODO: Merge lookop into props?
-    (let [m (parse-row props row)
-          eaa (juxt :entity/attribute :attribute)
-          value-parser (get lookup (eaa m))]
-      (cond-> m
-        value-parser (update :value value-parser)))))
+         props  (select-keys props keyseq)
+         _      (assert-ifn-vals props)
+         item   (->> row
+                  (zipmap keyseq)
+                  (merge-with parse props))
+         ea-vec (juxt :entity/attribute :attribute)
+         vparse (get lookup (ea-vec m))]
+     (cond-> item vparse (update :value vparse)))))
 
 (defn parser
   [props]
