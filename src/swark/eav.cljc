@@ -35,14 +35,14 @@
    (parse-row nil row))
   ([{:value/keys [parsers] :as props} row]
    (let [keyseq [:entity/attribute :entity/value :attribute :value]
-         props  (select-keys props keyseq)
-         _      (assert-ifn-vals props)
-         item   (->> row
-                  (zipmap keyseq)
-                  (merge-with parse props))
-         ea-vec (juxt :entity/attribute :attribute)
-         vparse (get lookup (ea-vec m))]
-     (cond-> item vparse (update :value vparse)))))
+         props     (select-keys props keyseq)
+         _         (assert-ifn-vals props)
+         item      (->> row
+                     (zipmap keyseq)
+                     (merge-with parse props))
+         ea-vector (juxt :entity/attribute :attribute)
+         v-parser  (get parsers (ea-vector m))]
+     (cond-> item v-parser (update :value v-parser)))))
 
 (defn parser
   [props]
