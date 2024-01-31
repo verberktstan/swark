@@ -157,9 +157,4 @@
       seq
       (into {}))))
 
-(def valid-map?
-  {:added "0.1.1"
-   :arglist '([spec input])
-   :doc "Returns true if input is nil or valid according to spec."
-   :static true}
-  (complement invalid-map?))
+(def valid-map? (complement invalid-map?))
