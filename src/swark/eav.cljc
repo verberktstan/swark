@@ -39,7 +39,15 @@
      (assert-ifn-vals props)
      (->> row
           (zipmap keyseq)
-          (merge-with parse props)))))
+          (merge-with parse props))))
+  ([props lookup row] ;TODO: Merge lookop into props?
+    (let [m (parse-row props row)
+          ea-parser (get lookup :entity/attribute identity)
+          eaa (juxt (comp ea-parser :entity/attribute) :attribute)
+          value-parser (get lookup (eaa m))]
+      (cond-> m
+        ea-parser (update:entity/attribute ea-parser)
+        value-parser (update :value value-parser)))))
 
 (defn parser
   [props]
