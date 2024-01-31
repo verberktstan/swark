@@ -1,6 +1,5 @@
 (ns swark.core
-  (:require [clojure.string :as str])
-  (:import [clojure.lang Named]))
+  (:require [clojure.string :as str]))
 
 ;; SWiss ARmy Knife - Your everyday clojure toolbelt!
 ;; Copyright 2024 - Stan Verberkt (verberktstan@gmail.com)
@@ -125,20 +124,33 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Minimalistic spec
 
+
+(defn- check [predicate input]
+  {::predicate predicate ::input input ::result (predicate input)})
+
 (defn invalid-map?
-  "Returns nil if map `input` is valid according to map `spec`.
-  When `input` is nil, returns {::input nil}.
-  When `input` is invalid, returns a map with a report on why it is invalid."
+ {:added "0.1.1"
+   :arglist '([spec input])
+   :doc "Returns nil if input is valid according to spec. When input is invalid,
+   returns a map reporting how it is invalid. When input is nil, returns the
+   special keyword ::nil.
+   `(valid-map? {:a string?} {:a 12}) ≠> {::predicate string? ::input 12 ::result false}`"
+   :static true}
   [spec input]
   (-> spec map? (assert "Spec should be a map!"))
   (assert (->> spec vals (every? ifn?)) "All vals in spec should implement IFn!")
   (some-> input map? (assert "Input should be a map!"))
-  (case input
-    nil {::input input} ; Explicit inform that input is nil
+  (if (nil? input)
+    ::nil ; Explicit inform that input is nil
     (some->> input
-             (merge-with (fn [predicate input] {::predicate predicate ::input input ::result (predicate input)}) spec)
-             (remove (comp ::result val))
-             seq
-             (into {}))))
+      (merge-with check spec)
+      (remove (comp ::result val))
+      seq
+      (into {}))))
 
-(def valid-map? (complement invalid-map?))
+(def valid-map?
+  {:added "0.1.1"
+   :arglist '([spec input])
+   :doc "Returns true if input is nil or valid according to spec."
+   :static true}
+  (complement invalid-map?))
