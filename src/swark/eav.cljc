@@ -2,7 +2,7 @@
 
 ;; Storing data as Entity / Attribute / Value rows
 
-(defn- parse [f input] (f input))
+(defn- parse [f input] (cond-> input (ifn? f) f))
 
 (defn ->rows
   "Returns a sequence of vectors with [entity-attribute entity-value attribute value]
