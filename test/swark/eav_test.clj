@@ -46,8 +46,8 @@
            (#'sut/parse-row
              {:entity/attribute swark/->keyword
               :entity/value     edn/read-string
-              :attribute        swark/->keyword}
-             {[:user/id :user/type] swark/->keyword}
+              :attribute        swark/->keyword
+              :value/parsers    {[:user/id :user/type] swark/->keyword}}
              ["user/id" "2" "user/type" "member"]))))
 
 (t/deftest filter-eav
