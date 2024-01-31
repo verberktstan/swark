@@ -33,7 +33,7 @@
   "Returns row as a map with :entity/attribute, :entity/value, :attribute & :value. Applies supplied parsers on the fly for thise mapentries. You can supply a value parser lookup via :value/parsers, if a parser can be found by [:entity/attribute :attribute], this is used to parse the :value of the row's eav-map."
   ([row]
    (parse-row nil row))
-  ([{:value/keys [parsers] props} row]
+  ([{:value/keys [parsers] :as props} row]
    (let [keyseq [:entity/attribute :entity/value :attribute :value]
          props  (select-keys props keyseq)
          _      (assert-ifn-vals props)
