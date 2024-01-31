@@ -48,7 +48,7 @@
    logical true on evaluation of (pred key).
    `(filter-keys {:a 1 \"b\" 2} keyword?) => {:a 1}`"
    :static true}
-  [map pree]
+  [map pred]
   (cond->> map
     pred    (filter (comp pred key))
     map     seq
