@@ -38,7 +38,17 @@
            (map (partial #'sut/parse-row {:attribute name}) (sut/->rows USER))))
   (t/is (= [{:entity/attribute :user/id :entity/value :two :attribute "name" :value "Arnold"}
             {:entity/attribute :user/id :entity/value :two :attribute "city" :value "Birmingham"}]
-           (map (partial #'sut/parse-row {:entity/value {2 :two} :attribute name}) (sut/->rows USER2 {:primary/key :user/id})))))
+           (map (partial #'sut/parse-row {:entity/value {2 :two} :attribute name}) (sut/->rows USER2 {:primary/key :user/id}))))
+  (t/is (= {:entity/attribute :user/id
+            :entity/value     2
+            :attribute        :user/type
+            :value            :member}
+           (sut/parse-row
+             {:entity/attribute swark/->keyword
+              :entity/value     edn/read-string
+              :attribute        swark/->keyword}
+             {[:user/id :user/type] swark/->keyword}
+             ["user/id" "2" "user/type" "member"]))))
 
 (t/deftest filter-eav
   (let [eav1 {:entity/attribute :id
