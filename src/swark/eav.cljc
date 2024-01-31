@@ -2,7 +2,7 @@
 
 ;; Storing data as Entity / Attribute / Value rows
 
-(defn- parse [f input] (f input))
+(defn- parse [f input] (cond-> input (ifn? f) f))
 
 (defn ->rows
   "Returns a sequence of vectors with [entity-attribute entity-value attribute value]
@@ -30,16 +30,19 @@
       (-> f ifn? (assert (str k " does not implement IFn!"))))))
 
 (defn- parse-row
-  "Returns row as a map with :entity/attribute, :entity/value, :attribute & :value. Applies supplied parsers on the fly."
+  "Returns row as a map with :entity/attribute, :entity/value, :attribute & :value. Applies supplied parsers on the fly for thise mapentries. You can supply a value parser lookup via :value/parsers, if a parser can be found by [:entity/attribute :attribute], this is used to parse the :value of the row's eav-map."
   ([row]
    (parse-row nil row))
-  ([props row]
+  ([{:value/keys [parsers] :as props} row]
    (let [keyseq [:entity/attribute :entity/value :attribute :value]
-         props  (select-keys props keyseq)]
-     (assert-ifn-vals props)
-     (->> row
-          (zipmap keyseq)
-          (merge-with parse props)))))
+         props     (select-keys props keyseq)
+         _         (assert-ifn-vals props)
+         item      (->> row
+                     (zipmap keyseq)
+                     (merge-with parse props))
+         ea-vector (juxt :entity/attribute :attribute)
+         v-parser  (get parsers (ea-vector item))]
+     (cond-> item v-parser (update :value v-parser)))))
 
 (defn parser
   [props]
