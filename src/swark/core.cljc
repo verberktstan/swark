@@ -46,7 +46,7 @@
    :arglists '([map pred])
    :doc "Returns a map containing only those entries in map whose key return
    logical true on evaluation of (pred key).
-   `(filter-keys {:a 1 "b" 2} keyword?) => {:a 1}`"
+   `(filter-keys {:a 1 \"b\" 2} keyword?) => {:a 1}`"
    :static true}
   [map pree]
   (cond->> map
