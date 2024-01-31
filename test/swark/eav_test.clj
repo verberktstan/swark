@@ -43,7 +43,7 @@
             :entity/value     2
             :attribute        :user/type
             :value            :member}
-           (sut/parse-row
+           (#'sut/parse-row
              {:entity/attribute swark/->keyword
               :entity/value     edn/read-string
               :attribute        swark/->keyword}
