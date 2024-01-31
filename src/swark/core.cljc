@@ -42,11 +42,13 @@
          (into {}))))
 
 (defn filter-keys
-  [map pred]
   {:added "0.1.3"
    :arglists '([map pred])
-   :doc "Returns a map containing only those entries in map whose key return logical true on evaluation of (pred key)."
+   :doc "Returns a map containing only those entries in map whose key return
+   logical true on evaluation of (pred key).
+   `(filter-keys {:a 1 "b" 2} keyword?) => {:a 1}`"
    :static true}
+  [map pree]
   (cond->> map
     pred    (filter (comp pred key))
     map     seq
@@ -56,8 +58,12 @@
 ;; Try and return nil when something is thrown
 
 (defn try?
-  "Returns the result of (apply f args). When any error or exception is trown,
-  returns `nil`."
+  {:added "0.1.3"
+   :arglists '([f & args])
+   :doc "Returns the result of (apply f args). When any error or exception is
+   thrown, simply returns nil instead.
+   `(try? inc nil) => nil`"
+   :static true}
   [f & args]
   (try
     (apply f args)
@@ -66,7 +72,10 @@
 (defn select-namespaced
   {:added "0.1.3"
    :arglist '([map] [map ns])
-   :doc "Returns a map containing only those entries in map whose keys' namespace match ns. When ns is nil, returns a map containing only non-namespaced keys."
+   :doc "Returns a map containing only those entries in map whose keys'
+   namespace match ns. When ns is nil, returns a map containing only
+   non-namespaced keys.
+   `(select-namespaced {::test 1 :test 2} (namespace ::this)) => {::test 1}`"
    :static true}
   ([map]
    (select-namespaced map nil))
