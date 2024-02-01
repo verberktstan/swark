@@ -105,7 +105,7 @@
   "Returns a unique string that does is not yet contained in the existing set."
   ([] (-> (random-uuid) str))
   ([existing]
-    (-> existing set? assert) 
+    (-> existing set? assert)
     (reduce
       (fn [s char]
         (if (and s (-> s existing not) (-> s reverse first #{"-"} not))
@@ -125,10 +125,12 @@
   ([ignore-match input]
    (->keyword ignore-match "-" input))
   ([ignore-match replacement input]
-   (let [match        (or ignore-match #"\s")
-         replacement' (or replacement "-")]
-     (when input
-       (some-> input name str/trim str/lower-case (str/replace match replacement') keyword)))))
+   (if (keyword? input)
+     input
+     (let [match        (or ignore-match #"\s")
+           replacement' (or replacement "-")]
+       (when input
+         (some-> input name str/trim str/lower-case (str/replace match replacement') keyword))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Minimalistic spec

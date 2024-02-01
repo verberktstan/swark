@@ -71,12 +71,17 @@
   (t/is (-> (reduce (fn [x _] (conj x (sut/unid x))) #{} (range 999)) count #{999})))
 
 (t/deftest ->keyword
-  (t/are [result match replacement input] (= result (sut/->keyword match replacement input))
-    :test     nil          nil :test
-    :hello    nil          nil "hello"
-    :symbol   nil          nil 'symbol
-    :h-ell-o1 nil          nil " H ell-o1"
-    :hello    #"[0-9\s\-]" ""  " H ell-o1"))
+  (t/are [result args] (= result (apply sut/->keyword args))
+    :test         [:test]
+    ::test        [::test]
+    :hello        ["hello"]
+    :symbol       ['symbol]
+    :h-ell-o1     [" H ell-o1"]
+    :test/h-ell-o ["test/h ell o"]
+    :he--o        [#"!" "he!!o"]
+    :hello        [#"!" "l" "he!!o"]
+    :test/hello   [#"!" "l" "test/he!!o"]
+    :hello        [#"[0-9\s\-]" ""  " H ell-o1"]))
 
 (t/deftest spec
   (let [report #::sut{:predicate nat-int? :input -1 :result false}]
