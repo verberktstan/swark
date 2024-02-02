@@ -1,6 +1,7 @@
 (ns swark.eav
   {:added "0.1.3"
-   :doc "Serialize and parse data as entity-atteibute-value rows."})
+   :doc "Serialize and parse data as entity-atteibute-value rows."}
+  (:require [clojure.data :as data]))
 
 ;; Storing data as Entity / Attribute / Value rows
 
@@ -23,7 +24,38 @@
      (let [entry (mapv parse [parse-entity-attribute parse-entity-value] entry)]
        (->> (dissoc m primary-key)
             (map (partial mapv parse [parse-attribute parse-value]))
-            (map (partial into entry)))))))
+            (map (partial into entry))))))
+  ([m props & append]
+   (->> (->rows m props)
+        (map #(apply conj % append)))))
+
+(comment
+  (->rows {:test "ikel" :some "thing"} {:primary/key :test} ::deleted)
+  )
+
+(defn- diff [primary-key & maps]
+  (let [entity (-> (apply merge maps) (find primary-key))
+        [removed added _] (apply data/diff maps)
+        removed (some->> removed
+                         (remove (comp (or added {}) key))
+                         seq
+                         (into {}))]
+    {::removed removed
+     ::added   added}))
+
+(defn diff-rows
+  [{primary-key :primary/key :as props} & maps]
+  (let [diff* (apply diff primary-key maps)
+        entity (select-keys (apply merge maps) [primary-key])
+        removed (-> diff* ::removed (merge entity))
+        added   (-> diff* ::added (merge entity))]
+    (concat
+      (->rows removed props ::removed)
+      (->rows added props))))
+
+(comment
+  (diff-rows {:primary/key :id} {:id 0 :ab "cd" :cd "ef"} {:id 0 :ab "de"}) 
+  )
 
 (defn- assert-ifn-vals
   [props]

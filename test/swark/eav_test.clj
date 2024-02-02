@@ -17,16 +17,21 @@
   (t/is (= [[:city/id 3 :city/name "Birmingham"]
             [:city/id 4 :city/name "Cork"]]
            (mapcat
-            #(sut/->rows % {:primary/key :city/id})
-            [#:city{:id 3 :name "Birmingham"}
-             #:city{:id 4 :name "Cork"}])))
+             #(sut/->rows % {:primary/key :city/id})
+             [#:city{:id 3 :name "Birmingham"}
+              #:city{:id 4 :name "Cork"}])))
   (t/is (= [["user/id" "2" "user/name" "Arnold"]
             ["user/id" "2" "user/city" "Birmingham"]]
-           (sut/->rows USER2 {:primary/key :user/id
+           (sut/->rows USER2 {:primary/key      :user/id
                               :entity/attribute swark/->str
-                              :entity/value str
-                              :attribute swark/->str
-                              :value name}))))
+                              :entity/value     str
+                              :attribute        swark/->str
+                              :value            name}))))
+
+(t/deftest diff
+  (t/is (= {::sut/removed {:user/city "Birmingham"}
+            ::sut/added   {:user/name "Bert"}}
+           (#'sut/diff :user/id USER2 #:user{:id 2 :name "Bert"}))))
 
 (t/deftest parse-row
   (t/is (= [{:entity/attribute :id :entity/value 1 :attribute :username :value "Arnold"}]
