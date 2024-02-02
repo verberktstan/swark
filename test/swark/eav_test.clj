@@ -28,6 +28,11 @@
                               :attribute swark/->str
                               :value name}))))
 
+(t/deftest diff
+  (t/is (= {:removed {:user/city "Birmingham"}
+            :added   {:user/name "Bert"}}
+           (sut/diff USER2 #:user{:id 2 :name "Bert"}))))
+
 (t/deftest parse-row
   (t/is (= [{:entity/attribute :id :entity/value 1 :attribute :username :value "Arnold"}]
            (map #'sut/parse-row (sut/->rows USER))))
