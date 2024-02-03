@@ -95,11 +95,12 @@
     (or
       (when (keyword? input)
         (->> ((juxt namespace name) input)
-          (keep identity)
-          (map ->str)
-          (str/join "/")))
-      (when input
-        (some-> input name str/trim non-blank)))))
+             (keep identity)
+             (map ->str)
+             (str/join "/")))
+      (when (try? name input)
+        (some-> input name str/trim non-blank))
+      (str input))))
 
 (defn unid
   "Returns a unique string that does is not yet contained in the existing set."
