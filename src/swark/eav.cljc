@@ -1,12 +1,14 @@
 (ns swark.eav
   {:added "0.1.3"
    :doc "Serialize and parse data as entity-atteibute-value rows."}
-  (:require [clojure.data :as data]))
+  (:require [clojure.data :as data]
+            [swark.core :refer [->str]]))
 
 ;; Storing data as Entity / Attribute / Value rows
 
 (defn- parse [f input] (cond-> input (ifn? f) f))
 
+;; TODO: Add test for append arguments
 (defn ->rows
   "Returns a sequence of vectors with [entity-attribute entity-value attribute value]
   for each map-entry in map m."
@@ -33,6 +35,7 @@
   (->rows {:test "ikel" :some "thing"} {:primary/key :test} ::deleted)
   )
 
+;; TODO: Make parse-row and merge-rows swallow this ::removed flag
 (defn- diff [primary-key & maps]
   (let [entity (-> (apply merge maps) (find primary-key))
         [removed added _] (apply data/diff maps)
@@ -50,7 +53,7 @@
         removed (-> diff* ::removed (merge entity))
         added   (-> diff* ::added (merge entity))]
     (concat
-      (->rows removed props ::removed)
+      (->rows removed props (->str ::removed))
       (->rows added props))))
 
 (comment
@@ -68,15 +71,17 @@
   ([row]
    (parse-row nil row))
   ([{:value/keys [parsers] :as props} row]
-   (let [keyseq [:entity/attribute :entity/value :attribute :value]
+   (let [keyseq [:entity/attribute :entity/value :attribute :value ::option]
          props     (select-keys props keyseq)
          _         (assert-ifn-vals props)
          item      (->> row
                      (zipmap keyseq)
-                     (merge-with parse props))
+                     (merge-with parse (assoc props ::option keyword)))
          ea-vector (juxt :entity/attribute :attribute)
          v-parser  (get parsers (ea-vector item))]
-     (cond-> item v-parser (update :value v-parser)))))
+     (cond-> (dissoc item ::option)
+       v-parser (update :value v-parser)
+       (some-> item ::option #{::removed}) (assoc ::removed true)))))
 
 (defn parser
   [props]
@@ -100,18 +105,30 @@
   (filter (partial filter-eav props)))
 
 (defn- mapify
-  [{ea :entity/attribute
-    ev :entity/value
-    a  :attribute
-    v  :value}]
-  {[ea ev] {ea ev a v}})
+  [{ea  :entity/attribute
+    ev  :entity/value
+    a   :attribute
+    v   :value
+    rm? ::removed}]
+  {[ea ev] (cond-> {a v}
+             rm?       (assoc ::removed true)
+             (not rm?) (assoc ea ev))})
+
+(defn- merge-rows* [map1 {::keys [removed] :as map2}]
+  (if removed
+    (apply dissoc map1 (keys map2))
+    (merge map1 map2)))
 
 (defn merge-rows
-  [parse-props filter-props rows]
-  (transduce
-   (comp
-    (parser parse-props)
-    (filterer filter-props)
-    (map mapify))
-   (partial merge-with merge)
-   rows))
+  ([rows]
+   (merge-rows nil rows))
+  ([parse-props rows]
+   (merge-rows parse-props nil rows))
+  ([parse-props filter-props rows]
+   (transduce
+     (comp
+       (parser parse-props)
+       (filterer filter-props)
+       (map mapify))
+     (partial merge-with merge-rows*)
+     rows)))
