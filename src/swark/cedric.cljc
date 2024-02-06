@@ -170,7 +170,7 @@
       (serialize (assoc props :flags #{::deleted}) (merge removed entity))
       (serialize props (merge added entity)))))
 
-(defn- upsert-rows*
+(defn- upsert-rows
   [#_rows db-map {:keys [primary-key next-primary-val] :as props} item]
   (let [#_#_db-map (merge-rows {::primary-key #{primary-key}} rows)
         update?    (contains? item primary-key)
@@ -187,20 +187,16 @@
   (when (seq items)
     (let [db-map (merge-rows {::primary-key #{primary-key}} rows)]
       (mapcat
-        (partial upsert-rows* db-map props)
+        (partial upsert-rows db-map props)
         items))))
 
 (comment
-  (upsert-rows {[:id "a"] {:id "a" :test "ikel"}} {:primary-key :id :next-primary-val swark/unid} {:test "ikeltje"})
-  
-  (upsert-rows [["abc" "id" "a" "test" "ikel" ""]] {:primary-key :id :next-primary-val swark/unid} {:test "ikeltje"})
-
   (diff-rows {:primary-key :id} {:id 0 :test "ikel"} {:id 0 :test "wat?"})
 
-  (upsert-rows* [["abc" "id" "a" "test" "ikel" ""]
-                 ["abc" "id" "a" "more" "nonsense" ""]]
-                {:primary-key :id :next-primary-val swark/unid}
-                {:id "a" :test "ikeltje" :more "eh"})
+  (upsert-rows [["abc" "id" "a" "test" "ikel" ""]
+                ["abc" "id" "a" "more" "nonsense" ""]]
+               {:primary-key :id :next-primary-val swark/unid}
+               {:id "a" :test "ikeltje" :more "eh"})
 
   (upsert [["abc" "id" "a" "test" "ikel" ""]
            ["abc" "id" "a" "more" "nonsense" ""]]
