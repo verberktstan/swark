@@ -160,3 +160,36 @@
       (into {}))))
 
 (def valid-map? (complement invalid-map?))
+
+(defn memoir
+  "Like memoize but with flush functionality."
+  [f]
+  (let [state (atom nil)]
+    (fn memoir* [& args]
+      (let [flush?     (-> args first #{:flush})
+            flush-args (-> args rest seq)]
+        (cond
+          (and flush? flush-args)
+          (swap! state dissoc flush-args)
+
+          flush?
+          (reset! state nil)
+
+          :else
+          (or (get @state args)
+              (-> state
+                  (swap! assoc args (apply f args))
+                  (get args))))))))
+
+(comment
+  (def summ (memoir (partial reduce + 0)))
+  (summ [1 3 5]) ; Return 9 and cache the value for this input
+  (summ [9 11 13]) ; Return 33 (and cache)
+  (summ :flush [9 11 13]) ; Flush the cache for one input
+  (summ :flush [1 3 5])
+
+  (summ [1 3])
+  (summ [4 6])
+  (summ [10 12])
+  (summ :flush) ; Flush the complete cache (for all inputs)
+  )
