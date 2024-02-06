@@ -7,6 +7,12 @@
             #?(:clj [clojure.string :as str]))
   #?(:clj (:import [java.time Instant])))
 
+;; TODO: Test in cljs as well
+;; TODO: Move back in time by filtering on txd (transaction's utc date)
+;; TODO: Implement destroy with ::archive flag
+;; TODO: Write rows to csv, and test with that.
+;; TODO: Make Read, Upsert & Archive work more user friendly
+
 (defn- utc-now []
   #?(:cljs (.toUTCIsoString (gd/DateTime.))
      :clj (.toString (Instant/now))))
@@ -30,7 +36,7 @@
       (update ::primary-value (primary-value-serializer row-item))
       (update ::attribute (attribute-serializer row-item))
       (update ::value (value-serializer row-item))
-      (update ::flags #(when (seq %) (str (into [] (map swark/->str %)))))))
+      (update ::flags #(when (seq %) (->> % (map swark/->str) (into []) str)))))
 
 (def ^:private entry->row (juxt ::tx-utc-at ::primary-key ::primary-value ::attribute ::value ::flags))
 
@@ -164,18 +170,25 @@
       (serialize (assoc props :flags #{::deleted}) (merge removed entity))
       (serialize props (merge added entity)))))
 
-(defn- upsert-rows* [rows {:keys [primary-key next-primary-val] :as props} item]
-  (let [db-map    (merge-rows {::primary-key #{primary-key}} rows)
-        update?   (contains? item primary-key)
-        next-pval #(->> db-map keys (map second) set next-primary-val)
-        item      (cond-> item
-                    (not update?) (assoc primary-key (next-pval)))
-        entity    (find item primary-key)]
-    (assert entity)
-    #_db-map
+(defn- upsert-rows*
+  [#_rows db-map {:keys [primary-key next-primary-val] :as props} item]
+  (let [#_#_db-map (merge-rows {::primary-key #{primary-key}} rows)
+        update?    (contains? item primary-key)
+        next-pval  #(->> db-map keys (map second) set next-primary-val)
+        item       (cond-> item
+                     (not update?) (assoc primary-key (next-pval)))
+        entity     (find item primary-key)]
     (if update?
       (diff-rows props (get db-map entity) item)
       (serialize props item))))
+
+(defn upsert
+  [rows {:keys [primary-key] :as props} & items]
+  (when (seq items)
+    (let [db-map (merge-rows {::primary-key #{primary-key}} rows)]
+      (mapcat
+        (partial upsert-rows* db-map props)
+        items))))
 
 (comment
   (upsert-rows {[:id "a"] {:id "a" :test "ikel"}} {:primary-key :id :next-primary-val swark/unid} {:test "ikeltje"})
@@ -188,6 +201,12 @@
                  ["abc" "id" "a" "more" "nonsense" ""]]
                 {:primary-key :id :next-primary-val swark/unid}
                 {:id "a" :test "ikeltje" :more "eh"})
+
+  (upsert [["abc" "id" "a" "test" "ikel" ""]
+           ["abc" "id" "a" "more" "nonsense" ""]]
+          {:primary-key :id :next-primary-val swark/unid}
+          {:id "a" :test "ikeltje" :more "eh"}
+          {:ohno "myg"})
 
   (let [txd  (utc-now) 
         rows [[txd "id" "a" "test" "ikel" ""]
