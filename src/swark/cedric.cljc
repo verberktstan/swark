@@ -2,6 +2,7 @@
   (:require [swark.core :as swark]
             [clojure.edn :as edn]
             [clojure.set :as set]
+            [clojure.data :as data]
             #?(:cljs [goog.date :as gd])
             #?(:clj [clojure.string :as str]))
   #?(:clj (:import [java.time Instant])))
@@ -34,7 +35,8 @@
 (def ^:private entry->row (juxt ::tx-utc-at ::primary-key ::primary-value ::attribute ::value ::flags))
 
 (defn serialize
-  [{:keys [primary-key]} item]
+  [{:keys [primary-key flags]
+    :or   {flags #{}}} item]
   (let [entity    (find item primary-key)
         tx-utc-at (utc-now)]
     (assert entity)
@@ -46,7 +48,7 @@
                  ::primary-value (get item primary-key)
                  ::attribute     attribute
                  ::value         value
-                 ::flags         #{} #_ {::deleted ::archived}}))
+                 ::flags         flags #_ {::deleted ::archived}}))
          (map unparse)
          (map entry->row))))
 
@@ -57,7 +59,7 @@
 (defmethod attribute-parser :default [_] keyword)
 
 (defmulti primary-value-parser ::primary-key)
-(defmethod primary-value-parser :default [_] edn/read-string)
+(defmethod primary-value-parser :default [_] identity)
 
 (defmulti primary-key-parser ::primary-key)
 (defmethod primary-key-parser :default [_] keyword)
@@ -143,3 +145,59 @@
     #_(map parse-entry (map row->entry rows))
     (merge-rows #_{::entity #{[:id 12]}} rows))
   )
+
+(defn- diff [primary-key & items]
+  (let [entity            (find (apply merge items) primary-key)
+        [removed added _] (apply data/diff items)
+        removed           (some->> removed
+                                   (remove (comp (or added {}) key))
+                                   seq
+                                   (into {}))]
+    {::added   added
+     ::removed removed}))
+
+(defn- diff-rows [{:keys [primary-key] :as props} & items]
+  (let [entity            (select-keys (apply merge items) [primary-key])
+        {::keys
+         [added removed]} (apply diff primary-key items)]
+    (concat
+      (serialize (assoc props :flags #{::deleted}) (merge removed entity))
+      (serialize props (merge added entity)))))
+
+(defn- upsert-rows* [rows {:keys [primary-key next-primary-val] :as props} item]
+  (let [db-map    (merge-rows {::primary-key #{primary-key}} rows)
+        update?   (contains? item primary-key)
+        next-pval #(->> db-map keys (map second) set next-primary-val)
+        item      (cond-> item
+                    (not update?) (assoc primary-key (next-pval)))
+        entity    (find item primary-key)]
+    (assert entity)
+    #_db-map
+    (if update?
+      (diff-rows props (get db-map entity) item)
+      (serialize props item))))
+
+(comment
+  (upsert-rows {[:id "a"] {:id "a" :test "ikel"}} {:primary-key :id :next-primary-val swark/unid} {:test "ikeltje"})
+  
+  (upsert-rows [["abc" "id" "a" "test" "ikel" ""]] {:primary-key :id :next-primary-val swark/unid} {:test "ikeltje"})
+
+  (diff-rows {:primary-key :id} {:id 0 :test "ikel"} {:id 0 :test "wat?"})
+
+  (upsert-rows* [["abc" "id" "a" "test" "ikel" ""]
+                 ["abc" "id" "a" "more" "nonsense" ""]]
+                {:primary-key :id :next-primary-val swark/unid}
+                {:id "a" :test "ikeltje" :more "eh"})
+
+  (let [txd  (utc-now) 
+        rows [[txd "id" "a" "test" "ikel" ""]
+              [txd "id" "a" "more" "nonsense" ""]]
+        ]
+    (->> rows
+         (map row->entry)
+         (map parse-entry)
+         (filter (partial filter-entry {::primary-key #{:no}})))
+    #_(merge-rows #_{:primary-key #{:id}} rows))
+
+  )
+
