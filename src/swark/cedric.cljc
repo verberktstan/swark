@@ -194,16 +194,19 @@
       (serialize props (merge added entity)))))
 
 (defn- upsert-rows
-  [#_rows db-map {:keys [primary-key next-primary-val] :as props} item]
+  [db-items {:keys [primary-key next-primary-val]
+             :or   {next-primary-val swark/unid}
+             :as   props} item]
   (let [#_#_db-map (merge-rows {::primary-key #{primary-key}} rows)
         update?    (contains? item primary-key)
-        next-pval  #(->> db-map keys (map second) set next-primary-val)
+        next-pval  #(->> db-items #_keys (map (fn [item] (get item primary-key))) set next-primary-val)
         item       (cond-> item
                      (not update?) (assoc primary-key (next-pval)))
         entity     (find item primary-key)]
     (if update?
-      (diff-rows props (get db-map entity) item)
+      (diff-rows props (->> db-items (filter (comp #{entity} #(find % primary-key))) first) item)
       (serialize props item))))
+
 
 (defn upsert
   [rows {:keys [primary-key] :as props} & items]
@@ -237,7 +240,38 @@
   ;; Step 2 Make this work with csv
   )
 
+;; Instead of CRUD, we have URA
+;; Upsert = Create and Update
+;; Read = Read
+;; Archive = Delete
+
+(defprotocol Cedric
+  (upsert-items [this props items])
+  (read-items [this props])
+  (archive-items [this props items]))
+
+(defrecord Mem [rows-atom]
+  Cedric
+  (upsert-items [this {:keys [primary-key] :as props} items]
+    (->> (swap! (:rows-atom this) (fn [rows] (concat rows (apply upsert rows props items))))
+         (merge-rows {::primary-key #{primary-key}})))
+  (read-items [this props] (merge-rows props (-> this :rows-atom deref)))
+  (archive-items [this {:keys [primary-key] :as props} items]
+    (swap! (:rows-atom this) (fn [rows] (concat rows (apply archive rows props items))))
+    {::archived (count items)}))
+
 (comment
+
+  (def CM (Mem. (atom nil)))
+
+  (upsert-items CM {:primary-key :user/id} [{:user/name "Stan"} {:user/name "Corinne"} {:user/name "David"}])
+  ;; (read-items CM {::entity #{[:user/id "9"]}})
+  (read-items CM {})
+  (archive-items CM {:primary-key :user/id} [{:user/id "1"} {:user/id "4"}])
+
+
+  ;; (->> [{:user/id "8"} {:user/id "8"}] (map #(find % :user/id)) set)
+
   (diff-rows {:primary-key :id} {:id 0 :test "ikel"} {:id 0 :test "wat?"})
 
   (upsert-rows [["abc" "id" "a" "test" "ikel" ""]
