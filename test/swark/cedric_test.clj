@@ -34,6 +34,6 @@
       [["user/id" "2" "user/name" "Nats"]
        ["user/id" "2" "user/gender" "unknown"]] rows2)
     (is
-      (= {[:id 1]      {:username "Stan" :id 1 :category 1}
-          [:user/id 2] #:user{:name "Nats" :id 2 :gender :unknown}}
+      (= [{:username "Stan" :id 1 :category 1}
+          #:user{:name "Nats" :id 2 :gender :unknown}]
          (sut/merge-rows (concat rows1 rows2))))))

@@ -44,9 +44,13 @@
   [{:keys [primary-key flags]
     :or   {flags #{}}} item]
   (let [entity    (find item primary-key)
-        tx-utc-at (utc-now)]
+        tx-utc-at (utc-now)
+        archived? (some-> flags ::archived)
+        item'     (if archived?
+                    (select-keys item [primary-key])
+                    (dissoc item primary-key))]
     (assert entity)
-    (->> (dissoc item primary-key)
+    (->> item' #_(dissoc item primary-key)
          (map (fn [[attribute value]]
                 {::tx-utc-at     tx-utc-at
                  ::entity        entity
@@ -54,7 +58,7 @@
                  ::primary-value (get item primary-key)
                  ::attribute     attribute
                  ::value         value
-                 ::flags         flags #_ {::deleted ::archived}}))
+                 ::flags         (map name flags) #_ {::deleted ::archived}}))
          (map unparse)
          (map entry->row))))
 
@@ -81,6 +85,10 @@
            (mapv (partial keyword (namespace ::this)))
            set))))
 
+(comment
+  (parse-flags "[\"swark.cedric/archived\"]")
+  )
+
 (defn- parse-entry [entry]
   (let [find-entity (juxt ::primary-key ::primary-value)
         entry       (as-> entry e
@@ -97,21 +105,28 @@
     (->> rows
          (map row->entry)
          (map parse-entry)))
+
+  (meta (with-meta {:test "ikel"} {::flags #{::archived}}))
   )
 
 (defn- entry->map [{::keys [attribute value entity flags] :as entry}]
-  {entity (into {attribute value} [entity]) #_entry})
+  {entity (with-meta (into {attribute value} [entity]) {::flags flags}) #_entry})
 
-(defn- merge-entries [map1 {::keys [attribute flags] :as map2}]
+(defn- merge-entries [map1 {::keys [attribute] :as map2}]
+  (some-> map2 meta ::flags println)
   (cond
-    (some-> flags ::archived)
-    nil
+    (some-> map2 meta ::flags ::archived)
+    nil ; Return nil, this value is to be removed from the result later
 
-    (some-> flags ::deleted)
+    (some-> map2 meta ::flags ::deleted)
     (dissoc map1 attribute)
 
     :else
     (merge map1 map2)))
+
+(comment
+  (merge-entries {::test "ikel"} {::test "ikel" ::flags #{::archived}})
+  )
 
 (defn- filter-entry [props entry]
   (if-not (seq props)
@@ -137,14 +152,22 @@
   ([rows]
    (merge-rows nil rows))
   ([filter-props rows]
-   (transduce
-     (comp
-       (map row->entry)
-       (map parse-entry)
-       (filterer filter-props)
-       (map entry->map))
-     (partial merge-with merge-entries)
-     rows)))
+   #_(reduce-kv
+       (fn [db entity entry]
+         (cond-> db ; Archived entries are nil, so do not include those
+           entry (assoc entity entry)))
+       {})
+   (keep
+     val ; Only keep vals of the db maps, and omit archived entries
+     (transduce
+       (comp
+         (map row->entry)
+         (map parse-entry)
+         (filterer filter-props)
+         (map entry->map))
+       (partial merge-with merge-entries)
+       rows))
+   ))
 
 (comment
   (let [rows (serialize {:primary-key :id} {:id 123 :name "Stan" :test "ikel"})]
@@ -184,11 +207,35 @@
 
 (defn upsert
   [rows {:keys [primary-key] :as props} & items]
-  (when (seq items)
-    (let [db-map (merge-rows {::primary-key #{primary-key}} rows)]
-      (mapcat
-        (partial upsert-rows db-map props)
-        items))))
+  (assert (seq items))
+  (let [db-map (merge-rows {::primary-key #{primary-key}} rows)]
+    (mapcat
+      (partial upsert-rows db-map props)
+      items)))
+
+(defn archive
+  [rows {:keys [primary-key] :as props} & items]
+  (assert (and (seq items) (every? #(get % primary-key) items)))
+  (mapcat (partial serialize (assoc props :flags #{::archived})) items))
+
+(comment
+  ;; Step 1 make this work in memory!
+  (def DB (atom nil))
+  (swap! DB (fn [db]
+              (concat db (upsert db {:primary-key      :user/id
+                                     :next-primary-val swark/unid} {:user/name "Antilla"} {:user/name "Ben Hur"}))))
+  (merge-rows {::entity #{[:user/id "c"] [:user/id "09"]}} @DB)
+  (swap! DB (fn [db]
+              (concat db (upsert db {:primary-key :user/id} {:user/id "2" :user/name "VOID"}))))
+  #_(upsert @DB {:primary-key      :user/id
+                 :next-primary-val swark/unid} {:user/name "Antilla"} {:user/name "Ben Hur"})
+
+  (swap! DB (fn [db]
+              (concat db (archive db {:primary-key :user/id} {:user/id "bb"} {:user/id "f"}))))
+  
+
+  ;; Step 2 Make this work with csv
+  )
 
 (comment
   (diff-rows {:primary-key :id} {:id 0 :test "ikel"} {:id 0 :test "wat?"})
