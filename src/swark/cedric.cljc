@@ -4,7 +4,9 @@
             [clojure.set :as set]
             [clojure.data :as data]
             #?(:cljs [goog.date :as gd])
-            #?(:clj [clojure.string :as str]))
+            #?(:clj [clojure.string :as str])
+            #?(:clj [clojure.java.io :as io])
+            [clojure.data.csv :as csv])
   #?(:clj (:import [java.time Instant])))
 
 ;; TODO: Test in cljs as well
@@ -131,6 +133,7 @@
   "Return eagerly parsed and merged rows"
   ([rows]
    (merge-rows nil rows))
+  ;; TODO: Make it possible to return only the items from the last tx. Or a specific tx?
   ([filter-props rows]
    (keep
      val ; Only keep vals of the db maps, and omit archived entries
@@ -177,9 +180,17 @@
 (defn upsert
   [rows {:keys [primary-key] :as props} & items]
   (assert (seq items))
-  (let [db-map (merge-rows {::primary-key #{primary-key}} rows)]
-    (mapcat
-      (partial upsert-rows db-map props)
+  (let [primary-values (fn [items] (->> items (map #(get % primary-key)) set))
+        db-items (merge-rows {::primary-key #{primary-key}} rows)]
+    (-> (primary-values items)
+        (set/difference (primary-values db-items))
+        seq not assert)
+    (reduce
+      (fn [new-rows item]
+        ;; Take new rows from the other upserted items into account as well (for next-primary-val fn)
+        (let [db-items' (concat db-items (merge-rows {} new-rows))]
+          (concat new-rows (upsert-rows db-items' props item))))
+      nil
       items)))
 
 (defn archive
@@ -219,20 +230,47 @@
 (defrecord Mem [rows-atom]
   Cedric
   (upsert-items [this {:keys [primary-key] :as props} items]
-    (->> (swap! (:rows-atom this) (fn [rows] (concat rows (apply upsert rows props items))))
+    ;; TODO: Return only the items from this (the last) tx
+    (->> (swap! rows-atom (fn [rows] (concat rows (apply upsert rows props items))))
          (merge-rows {::primary-key #{primary-key}})))
-  (read-items [this props] (merge-rows props (-> this :rows-atom deref)))
+  (read-items [this props] (merge-rows props @rows-atom))
   (archive-items [this {:keys [primary-key] :as props} items]
-    (swap! (:rows-atom this) (fn [rows] (concat rows (apply archive rows props items))))
+    (swap! rows-atom (fn [rows] (concat rows (apply archive rows props items))))
     {::archived (count items)}))
 
+(defn- read-csv [filename]
+  (with-open [reader (io/reader filename)]
+    (-> reader (csv/read-csv :separator \;) doall)))
+
+(defn- write-csv! [filename rows]
+  (with-open [writer (io/writer filename :append true)]
+    (csv/write-csv writer rows :separator \;)))
+
+(defrecord Csv [filename]
+  Cedric
+  (upsert-items [this {:keys [primary-key] :as props} items]
+    (let [rows (read-csv filename)
+          new-rows (apply upsert rows props items)]
+      (write-csv! filename new-rows)
+      (merge-rows {::primary-key #{primary-key}} new-rows)))
+  (read-items [this props] (merge-rows props (read-csv filename)))
+  (archive-items [this props items]
+    (let [rows (read-csv filename)
+          new-rows (apply archive rows props items)]
+      (write-csv! filename new-rows)
+      {::archived (count new-rows)})))
+
 (comment
-
   (def CM (Mem. (atom nil)))
+  (def CC (Csv. "testdata.csv"))
 
-  (upsert-items CM {:primary-key :user/id} [{:user/name "Stan"} {:user/name "Corinne"} {:user/name "David"}])
+  (upsert-items CC {:primary-key :user/id} [{:user/name "Stan"} {:user/name "Corinne"} {:user/name "David"} {:user/name "Theodor"} {:user/name "Naomi"} {:user/name "Arnold"}])
+  ;; TODO: What if this doesn't exist?
+  (upsert-items CC {:primary-key :user/id} [{:user/id "7890" :user/name "Naomi"}])
   ;; (read-items CM {::entity #{[:user/id "9"]}})
-  (read-items CM {})
-  (archive-items CM {:primary-key :user/id} [{:user/id "1"} {:user/id "4"}])
-)
+  (read-items #_CM CC {})
+  (archive-items #_CM CC {:primary-key :user/id} [{:user/id "1"} {:user/id "9"}])
+  @(:rows-atom CM)
+
+  )
 
