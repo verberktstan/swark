@@ -9,9 +9,7 @@
 
 ;; TODO: Test in cljs as well
 ;; TODO: Move back in time by filtering on txd (transaction's utc date)
-;; TODO: Implement destroy with ::archive flag
 ;; TODO: Write rows to csv, and test with that.
-;; TODO: Make Read, Upsert & Archive work more user friendly
 
 (defn- utc-now []
   #?(:cljs (.toUTCIsoString (gd/DateTime.))
@@ -50,7 +48,7 @@
                     (select-keys item [primary-key])
                     (dissoc item primary-key))]
     (assert entity)
-    (->> item' #_(dissoc item primary-key)
+    (->> item'
          (map (fn [[attribute value]]
                 {::tx-utc-at     tx-utc-at
                  ::entity        entity
@@ -58,7 +56,7 @@
                  ::primary-value (get item primary-key)
                  ::attribute     attribute
                  ::value         value
-                 ::flags         (map name flags) #_ {::deleted ::archived}}))
+                 ::flags         (map name flags)}))
          (map unparse)
          (map entry->row))))
 
@@ -85,10 +83,6 @@
            (mapv (partial keyword (namespace ::this)))
            set))))
 
-(comment
-  (parse-flags "[\"swark.cedric/archived\"]")
-  )
-
 (defn- parse-entry [entry]
   (let [find-entity (juxt ::primary-key ::primary-value)
         entry       (as-> entry e
@@ -99,15 +93,6 @@
                       (update e ::flags parse-flags))
         entity      (find-entity entry)]
     (assoc entry ::entity entity)))
-
-(comment
-  (let [rows (serialize {:primary-key :id} {:id 123 :name "Stan" :test "ikel"})]
-    (->> rows
-         (map row->entry)
-         (map parse-entry)))
-
-  (meta (with-meta {:test "ikel"} {::flags #{::archived}}))
-  )
 
 (defn- entry->map [{::keys [attribute value entity flags] :as entry}]
   {entity (with-meta (into {attribute value} [entity]) {::flags flags}) #_entry})
@@ -124,10 +109,6 @@
     :else
     (merge map1 map2)))
 
-(comment
-  (merge-entries {::test "ikel"} {::test "ikel" ::flags #{::archived}})
-  )
-
 (defn- filter-entry [props entry]
   (if-not (seq props)
     true
@@ -143,7 +124,6 @@
                seq
                (every? identity)))))
 
-
 (defn- filterer [props]
   (filter (partial filter-entry props)))
 
@@ -152,11 +132,6 @@
   ([rows]
    (merge-rows nil rows))
   ([filter-props rows]
-   #_(reduce-kv
-       (fn [db entity entry]
-         (cond-> db ; Archived entries are nil, so do not include those
-           entry (assoc entity entry)))
-       {})
    (keep
      val ; Only keep vals of the db maps, and omit archived entries
      (transduce
@@ -166,14 +141,7 @@
          (filterer filter-props)
          (map entry->map))
        (partial merge-with merge-entries)
-       rows))
-   ))
-
-(comment
-  (let [rows (serialize {:primary-key :id} {:id 123 :name "Stan" :test "ikel"})]
-    #_(map parse-entry (map row->entry rows))
-    (merge-rows #_{::entity #{[:id 12]}} rows))
-  )
+       rows))))
 
 (defn- diff [primary-key & items]
   (let [entity            (find (apply merge items) primary-key)
@@ -197,16 +165,14 @@
   [db-items {:keys [primary-key next-primary-val]
              :or   {next-primary-val swark/unid}
              :as   props} item]
-  (let [#_#_db-map (merge-rows {::primary-key #{primary-key}} rows)
-        update?    (contains? item primary-key)
-        next-pval  #(->> db-items #_keys (map (fn [item] (get item primary-key))) set next-primary-val)
-        item       (cond-> item
-                     (not update?) (assoc primary-key (next-pval)))
-        entity     (find item primary-key)]
+  (let [update?   (contains? item primary-key)
+        next-pval #(->> db-items (map (fn [item] (get item primary-key))) set next-primary-val)
+        item      (cond-> item
+                    (not update?) (assoc primary-key (next-pval)))
+        entity    (find item primary-key)]
     (if update?
       (diff-rows props (->> db-items (filter (comp #{entity} #(find % primary-key))) first) item)
       (serialize props item))))
-
 
 (defn upsert
   [rows {:keys [primary-key] :as props} & items]
@@ -268,32 +234,5 @@
   ;; (read-items CM {::entity #{[:user/id "9"]}})
   (read-items CM {})
   (archive-items CM {:primary-key :user/id} [{:user/id "1"} {:user/id "4"}])
-
-
-  ;; (->> [{:user/id "8"} {:user/id "8"}] (map #(find % :user/id)) set)
-
-  (diff-rows {:primary-key :id} {:id 0 :test "ikel"} {:id 0 :test "wat?"})
-
-  (upsert-rows [["abc" "id" "a" "test" "ikel" ""]
-                ["abc" "id" "a" "more" "nonsense" ""]]
-               {:primary-key :id :next-primary-val swark/unid}
-               {:id "a" :test "ikeltje" :more "eh"})
-
-  (upsert [["abc" "id" "a" "test" "ikel" ""]
-           ["abc" "id" "a" "more" "nonsense" ""]]
-          {:primary-key :id :next-primary-val swark/unid}
-          {:id "a" :test "ikeltje" :more "eh"}
-          {:ohno "myg"})
-
-  (let [txd  (utc-now) 
-        rows [[txd "id" "a" "test" "ikel" ""]
-              [txd "id" "a" "more" "nonsense" ""]]
-        ]
-    (->> rows
-         (map row->entry)
-         (map parse-entry)
-         (filter (partial filter-entry {::primary-key #{:no}})))
-    #_(merge-rows #_{:primary-key #{:id}} rows))
-
-  )
+)
 
