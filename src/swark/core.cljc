@@ -98,9 +98,8 @@
              (keep identity)
              (map ->str)
              (str/join "/")))
-      (if (try? name input)
-        (some-> input name str/trim non-blank)
-        (some-> input str/trim non-blank)))))
+      (let [stringify (if (try? name input) name str)]
+        (some-> input stringify str/trim non-blank)))))
 
 (defn unid
   "Returns a unique string that does is not yet contained in the existing set."

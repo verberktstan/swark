@@ -12,6 +12,7 @@
 ;; TODO: Test in cljs as well
 ;; TODO: Move back in time by filtering on txd (transaction's utc date)
 ;; TODO: Write rows to csv, and test with that.
+;; TODO: Add some memoization with swark.core/memoire
 
 (defn- utc-now []
   #?(:cljs (.toUTCIsoString (gd/DateTime.))
