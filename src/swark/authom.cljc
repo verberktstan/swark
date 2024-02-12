@@ -29,11 +29,24 @@
   (->hash {:user/id 123} "password" "SECRET")
   )
 
+(defn- restore-meta-token*
+  [item token]
+  (vary-meta item assoc ::token token))
+
+(defn map-restore-meta-token
+  "Returns map item with the meta token restored, if it is associated with token-key."
+  [item token-key]
+  (-> item map? assert)
+  (let [retrieved (get item token-key)]
+    (assert retrieved)
+    (restore-meta-token* item retrieved)))
+
 (defn with-meta-token
   "Returns the item with the hashed token in it's metadata. `item` should implement IMeta, otherwise this simply returns nil."
   [item & [pass secret :as args]]
   (try
-    (vary-meta item assoc ::token (apply ->hash item args))
+    (restore-meta-token* item (str (apply ->hash item args)))
+    ;; (vary-meta item assoc ::token (apply ->hash item args))
     #?(:cljs (catch :default nil)
        :clj (catch Throwable _ nil))))
 
@@ -59,7 +72,7 @@
   [item & [pass secret :as args]]
   (let [token (meta-token item)]
     (assert token)
-    (when (= token (apply ->hash item args))
+    (when (= token (str (apply ->hash item args)))
       item)))
 
 (defn map-check-meta-token
@@ -102,3 +115,22 @@
         (get primary-val)
         meta-token))
   )
+
+(defn enrich-token
+  "Returns map with Authom's meta-token associated with ::token."
+  [map]
+  (-> map map? assert)
+  (let [token (meta-token map)]
+    (cond-> map
+      token (assoc ::token token))))
+
+(defn restore-enriched-token
+  "Returns map with the value in ::token restored as meta-token."
+  [{::keys [token] :as map}]
+  (-> map map? assert)
+  (cond-> map
+    token (restore-meta-token* token)
+    token (dissoc ::token)))
+
+(def CEDRIC-PROPS {:pre-upsert-parser enrich-token
+                   :post-merge-parser restore-enriched-token})
