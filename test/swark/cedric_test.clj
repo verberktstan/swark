@@ -1,8 +1,9 @@
 (ns swark.cedric-test
   (:require [clojure.edn :as edn]
             [clojure.test :refer [are deftest is testing]]
-            [swark.cedric :as sut])
-  (:import [swark.cedric Mem]))
+            [swark.cedric :as sut]
+            [swark.core :as swark])
+  (:import [swark.cedric Mem Csv]))
 
 ;; Parse :id record's category value as clojure object (int)
 (remove-method sut/value-parser [:id :category])
@@ -50,6 +51,35 @@
 
 (deftest mem-implementation
   (let [db        (Mem. (atom nil))
+        props     {:primary-key :person/id}
+        the-names (some-names 25)
+        persons   (map (partial assoc nil :person/name) the-names)
+        result    (sut/upsert-items db props persons)]
+    ;; result
+    (testing "upsert-items"
+      (testing "returns the upserted items"
+        (is (-> result count (= 25)))
+        (is (->> result (map :person/name) set (= (set the-names))))))
+    (let [new-names (some-names 3)
+          persons (->> result
+                       shuffle
+                       (take 3)
+                       (map #(assoc %2 :person/name %1) new-names))
+          updated (sut/upsert-items db props persons)]
+      (testing "returns the updated items"
+        (is (-> updated count #{3}))
+        (is (->> updated (map :person/name) set (= (set new-names))))))
+    (let [persons (->> result
+                       shuffle
+                       (take 5))
+          archived (sut/archive-items db props persons)]
+      (testing "returns the number of ::archived items"
+        (is (= {::sut/archived 5} archived))))
+    (testing "returns all the items"
+      (is (-> db (sut/read-items {}) count #{20})))))
+
+(deftest csv-implementation
+  (let [db        (Csv. (str "/tmp/testdb-" (swark/unid) ".csv"))
         props     {:primary-key :person/id}
         the-names (some-names 25)
         persons   (map (partial assoc nil :person/name) the-names)

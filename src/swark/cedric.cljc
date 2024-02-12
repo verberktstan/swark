@@ -186,7 +186,7 @@
   (assert (seq items))
   (let [primary-values (fn [items] (->> items (map #(get % primary-key)) set))
         db-items (merge-rows {::primary-key #{primary-key}} rows)]
-    (-> (primary-values items)
+    #_(-> (primary-values items)
         (set/difference (primary-values db-items))
         seq not assert)
     (reduce
@@ -244,21 +244,33 @@
     (swap! rows-atom (fn [rows] (concat rows (apply archive rows props items))))
     {::archived (count items)}))
 
-(defn- read-csv [filename]
-  (with-open [reader (io/reader filename)]
-    (-> reader (csv/read-csv :separator \;) doall)))
-
 (defn- write-csv! [filename rows]
   (with-open [writer (io/writer filename :append true)]
     (csv/write-csv writer rows :separator \;)))
+
+(defn- open-or-create! [filename]
+  (loop [reader (swark/try? io/reader filename)
+         retries-left 3]
+    (if (or reader (zero? retries-left))
+      reader
+      (do
+        (write-csv! filename [])
+        (recur (swark/try? io/reader filename) (dec retries-left))))))
+
+(defn- read-csv [filename]
+  (with-open [reader (open-or-create! filename)]
+    (-> reader (csv/read-csv :separator \;) doall)))
 
 (defrecord Csv [filename]
   Cedric
   (upsert-items [this {:keys [primary-key] :as props} items]
     (let [rows (read-csv filename)
-          new-rows (apply upsert rows props items)]
+          new-rows (apply upsert rows props items)
+          updated-pvals (seq (keep #(get % primary-key) items))]
       (write-csv! filename new-rows)
-      (merge-rows {::primary-key #{primary-key}} new-rows)))
+      (merge-rows
+        (cond-> {::primary-key #{primary-key}} updated-pvals (assoc ::primary-value (set updated-pvals)))
+        new-rows)))
   (read-items [this props] (merge-rows props (read-csv filename)))
   (archive-items [this props items]
     (let [rows (read-csv filename)
