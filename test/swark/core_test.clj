@@ -68,7 +68,9 @@
 (t/deftest unid
   (t/is (string? (sut/unid)))
   (t/is (-> #{"x"} sut/unid count #{1}))
-  (t/is (-> (reduce (fn [x _] (conj x (sut/unid x))) #{} (range 999)) count #{999})))
+  (t/is (->> #{"xyzab"} (sut/unid {:min-length 5}) count (>= 5)))
+  (t/is (-> (reduce (fn [x _] (conj x (sut/unid x))) #{} (range 999)) count #{999}))
+  (t/is (-> (reduce (fn [x _] (conj x (sut/unid {:min-length 4} x))) #{} (range 999)) count #{999})))
 
 (t/deftest ->keyword
   (t/are [result args] (= result (apply sut/->keyword args))
