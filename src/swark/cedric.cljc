@@ -135,17 +135,19 @@
   ([rows]
    (merge-rows nil rows))
   ;; TODO: Make it possible to return only the items from the last tx. Or a specific tx?
-  ([filter-props rows]
+  ([{:keys [post-merge-parser]
+     :or {post-merge-parser identity}
+     :as props} rows]
    (keep
-     val ; Only keep vals of the db maps, and omit archived entries
-     (transduce
-       (comp
-         (map row->entry)
-         (map parse-entry)
-         (filterer filter-props)
-         (map entry->map))
-       (partial merge-with merge-entries)
-       rows))))
+    (comp post-merge-parser val) ; Only keep vals of the db maps, and omit archived entries
+    (transduce
+     (comp
+      (map row->entry)
+      (map parse-entry)
+      (filterer props)
+      (map entry->map))
+     (partial merge-with merge-entries)
+     rows))))
 
 (defn- diff [primary-key & items]
   (let [entity            (find (apply merge items) primary-key)
@@ -182,20 +184,19 @@
       (serialize props item))))
 
 (defn upsert
-  [rows {:keys [primary-key] :as props} & items]
+  [rows {:keys [pre-upsert-serializer primary-key]
+         :or {pre-upsert-serializer identity}
+         :as props} & items]
   (assert (seq items))
   (let [primary-values (fn [items] (->> items (map #(get % primary-key)) set))
         db-items (merge-rows {::primary-key #{primary-key}} rows)]
-    #_(-> (primary-values items)
-        (set/difference (primary-values db-items))
-        seq not assert)
     (reduce
-      (fn [new-rows item]
+     (fn [new-rows item]
         ;; Take new rows from the other upserted items into account as well (for next-primary-val fn)
-        (let [db-items' (concat db-items (merge-rows {} new-rows))]
-          (concat new-rows (upsert-rows db-items' props item))))
-      nil
-      items)))
+       (let [db-items' (concat db-items (merge-rows {} new-rows))]
+         (concat new-rows (upsert-rows db-items' props item))))
+     nil
+     (map pre-upsert-serializer items))))
 
 (defn archive
   [rows {:keys [primary-key] :as props} & items]
