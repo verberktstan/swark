@@ -20,20 +20,15 @@
    (assert secret)
    (->hash {::item item ::secret secret} pass)))
 
-(comment
-  ;; TODO: Turn fiddle code into tests
-  (hash 1)
-  (hash-unordered-coll 1)
-  (->hash {:user/id 123})
-  (->hash {:user/id 123} "password")
-  (->hash {:user/id 123} "password" "SECRET")
-  )
+(defn- restore-meta-token*
+  [item token]
+  (vary-meta item assoc ::token token))
 
 (defn with-meta-token
   "Returns the item with the hashed token in it's metadata. `item` should implement IMeta, otherwise this simply returns nil."
   [item & [pass secret :as args]]
   (try
-    (vary-meta item assoc ::token (apply ->hash item args))
+    (restore-meta-token* item (str (apply ->hash item args)))
     #?(:cljs (catch :default nil)
        :clj (catch Throwable _ nil))))
 
@@ -44,13 +39,7 @@
   (-> m (get primary-key) assert)
   (merge (apply with-meta-token (select-keys m [primary-key]) args) m))
 
-(comment
-  ;; TODO: Turn fiddle code into tests
-  (-> {:user/id 123} with-meta-token meta)
-  (-> {:user/id 123} (with-meta-token "password") meta)
-  (-> {:user/id 123} (with-meta-token "password" "SECRET") meta)
-  )
-
+;; Simply return the token from the Authom metadata
 (def meta-token (comp ::token meta))
 
 (defn check-meta-token
@@ -59,7 +48,7 @@
   [item & [pass secret :as args]]
   (let [token (meta-token item)]
     (assert token)
-    (when (= token (apply ->hash item args))
+    (when (= token (str (apply ->hash item args)))
       item)))
 
 (defn map-check-meta-token
@@ -68,37 +57,23 @@
   (-> m (get primary-key) assert)
   (apply check-meta-token (select-keys m [primary-key]) args))
 
-(comment
-  ;; TODO: Turn fiddle code into tests
-  (let [user (with-meta-token {:user/id 123} "password" "SECRET")]
-    {:valid   (check-meta-token user "password" "SECRET")
-     :invalid (check-meta-token user "wrong-password" "SECRET")})
+(defn enrich-token
+  "Returns map with Authom's meta-token associated with ::token."
+  [map]
+  (-> map map? assert)
+  (let [token (meta-token map)]
+    (cond-> map
+      token (assoc ::token token))))
 
-  ;; Example usage with SQL database via jdbc
-  (let [primary-key  :user/id
-        user         {:user/id 123 :user/name "User Name"}
-        user'        (-> user
-                         (select-keys [primary-key]) ; Generate meta token only with primary map-entry
-                         (with-meta-token "pass")
-                         (merge user))
-        get-rows     (juxt :user/id meta-token :user/name) ; Retrieve id, token and name from user record
-        rows         (get-rows (merge user' user)) ; NOTE: The metadata is preserved from user'
-        upsert-query (into ["REPLACE INTO users(id,token,name) values(?,?,?)"] rows)] ; Construct a SQL query to upsert user rows in the database.
-    (with-open [connection (-> {:dbname "test"} jdbc/get-datasource jdbc/get-connection)]
-      (jdbc/execute! connection upsert-query)))
+(defn restore-enriched-token
+  "Returns map with the value in ::token restored as meta-token."
+  [{::keys [token] :as map}]
+  (-> map map? assert)
+  (cond-> map
+    token (restore-meta-token* token)
+    token (dissoc ::token)))
 
-  ;; Example usage - update user in appdb
-  (let [primary-key :user/id
-        user        {:user/id 123 :user/name "User Name"}
-        primary-val (get user primary-key)
-        user'       (-> user
-                        (select-keys [primary-key]) ; Generate meta token only with primary map-entry
-                        (with-meta-token "pass")
-                        (merge user))
-        db          {}]
-    (-> db
-        (update-in [:users primary-val] (partial merge user')) ; Update user in db
-        :users
-        (get primary-val)
-        meta-token))
-  )
+;; NOTE: Default props to make swark.cedric serialize and parse Authom tokens automatically
+(def CEDRIC-PROPS
+  {:pre-upsert-serializer enrich-token
+   :post-merge-parser restore-enriched-token})

@@ -95,24 +95,26 @@
     (or
       (when (keyword? input)
         (->> ((juxt namespace name) input)
-          (keep identity)
-          (map ->str)
-          (str/join "/")))
-      (when input
-        (some-> input name str/trim non-blank)))))
+             (keep identity)
+             (map ->str)
+             (str/join "/")))
+      (let [stringify (if (try? name input) name str)]
+        (some-> input stringify str/trim non-blank)))))
 
 (defn unid
   "Returns a unique string that does is not yet contained in the existing set."
   ([] (-> (random-uuid) str))
   ([existing]
-    (-> existing set? assert)
-    (reduce
-      (fn [s char]
-        (if (and s (-> s existing not) (-> s reverse first #{"-"} not))
-          (reduced s)
-          (str s char)))
-      nil
-      (seq (unid)))))
+   (unid nil existing))
+  ([{:keys [min-length] :or {min-length 1}} existing]
+   (-> existing set? assert)
+   (reduce
+    (fn [s char]
+      (if (and s (>= (count s) min-length) (-> s existing not) (-> s reverse first #{"-"} not))
+        (reduced s)
+        (str s char)))
+    nil
+    (seq (unid)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Regarding keywords
