@@ -250,13 +250,13 @@
     (csv/write-csv writer rows :separator \;)))
 
 (defn- open-or-create! [filename]
-  (loop [reader (swark/try? io/reader filename)
+  (loop [reader (swark/jab io/reader filename)
          retries-left 3]
     (if (or reader (zero? retries-left))
       reader
       (do
         (write-csv! filename [])
-        (recur (swark/try? io/reader filename) (dec retries-left))))))
+        (recur (swark/jab io/reader filename) (dec retries-left))))))
 
 (defn- read-csv [filename]
   (with-open [reader (open-or-create! filename)]

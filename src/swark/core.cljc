@@ -57,12 +57,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Try and return nil when something is thrown
 
-(defn try?
+(defn jab
   {:added "0.1.3"
    :arglists '([f & args])
    :doc "Returns the result of (apply f args). When any error or exception is
-   thrown, simply returns nil instead.
-   `(try? inc nil) => nil`"
+   thrown, simply returns nil instead. So jab is like try but it fails silently.
+   `(jab inc nil) => nil`"
    :static true}
   [f & args]
   (try
@@ -81,7 +81,7 @@
    (select-namespaced map nil))
   ([map ns]
    (-> map map? assert)
-   (let [ns (try? name ns)
+   (let [ns (jab name ns)
          predicate (if ns #{ns} nil?)]
      (filter-keys map (comp predicate namespace)))))
 
@@ -98,7 +98,7 @@
              (keep identity)
              (map ->str)
              (str/join "/")))
-      (let [stringify (if (try? name input) name str)]
+      (let [stringify (if (jab name input) name str)]
         (some-> input stringify str/trim non-blank)))))
 
 (defn unid

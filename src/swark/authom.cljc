@@ -1,7 +1,7 @@
 (ns swark.authom
   {:added "0.1.3"
    :doc "(Re)store auth related stuff in clojure metadata."}
-  (:require [swark.core :refer [try?]]))
+  (:require [swark.core :refer [jab]]))
 
 ;; swark.authom - Atomic authorisation made easy
 
@@ -9,10 +9,10 @@
   "Returns the hash code of `item`. Tries to find it for collections if standard hashing fails."
   ([item]
    (assert item)
-   (or (try? hash item)
-       (try? hash-unordered-coll item)
-       (try? hash-ordered-coll item)
-       (try? mix-collection-hash item 2)))
+   (or (jab hash item)
+       (jab hash-unordered-coll item)
+       (jab hash-ordered-coll item)
+       (jab mix-collection-hash item 2)))
   ([item pass]
    (assert pass)
    (->hash {::item item ::pass pass}))
