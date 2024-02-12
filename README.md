@@ -25,6 +25,42 @@ Then you can use the Swark utility functions:
 
 ```(swark/key-by :id [{:id 1 :name "one"} {:id 2 :name "two"}])```
 
+## Example
+
+Let's say you want to store a user record, some credentials and check their credentials.
+You can use swark.cedric for the persistence part, and swark.authom for the authentication part.
+
+1. Let's create/connect to a database via the Csv implementation and store db props related to users.
+
+ ```
+(ns my.ns
+    (:require [swark.authom :as authom]
+              [swark.cedric :as cedric]))
+
+(def DB (cedric/Csv. "db.csv"))
+(def PROPS (merge authom/CEDRIC-PROPS {:primary-key :user/id}))
+ ```
+
+2. Create a new user record like so:
+
+```
+(def USER (-> DB (cedric/upsert-items PROPS [{:user/name "Readme User"}]) first))
+```
+
+3. Store credentials by upserting the user
+
+```
+(let [user (authom/map-with-meta-token USER :user/id "pass" "SECRET")]
+    (cedric/upsert-items DB PROPS [user]))
+```
+
+4. Retrieve the user and check their credentials
+
+```
+(let [user (-> DB (cedric/read-items {::cedric/primary-key #{:user/id}}) first)]
+    (-> user (authom/map-check-meta-token :user/id "pass" "SECRET") assert))
+```
+
 ## Tests
 
 Run the tests with `clojure -X:test/run`
