@@ -170,7 +170,10 @@
              :or   {next-primary-val swark/unid}
              :as   props} item]
   (let [update?   (contains? item primary-key)
-        next-pval #(->> db-items (map (fn [item] (get item primary-key))) set next-primary-val)
+        next-pval #(->> db-items
+                        (map (fn [item] (get item primary-key))) ; NOTE: primary-key doesn't have to be a keyword!
+                        set
+                        next-primary-val)
         item      (cond-> item
                     (not update?) (assoc primary-key (next-pval)))
         entity    (find item primary-key)]
@@ -232,8 +235,10 @@
   Cedric
   (upsert-items [this {:keys [primary-key] :as props} items]
     ;; TODO: Return only the items from this (the last) tx
-    (->> (swap! rows-atom (fn [rows] (concat rows (apply upsert rows props items))))
-         (merge-rows {::primary-key #{primary-key}})))
+    (let [updated-pvals (seq (keep #(get % primary-key) items))]
+      (->> (swap! rows-atom (fn [rows] (concat rows (apply upsert rows props items))))
+           (merge-rows (cond-> {::primary-key #{primary-key}}
+                         updated-pvals (assoc ::primary-value (set updated-pvals)))))))
   (read-items [this props] (merge-rows props @rows-atom))
   (archive-items [this {:keys [primary-key] :as props} items]
     (swap! rows-atom (fn [rows] (concat rows (apply archive rows props items))))
