@@ -27,10 +27,7 @@
 (defn with-meta-token
   "Returns the item with the hashed token in it's metadata. `item` should implement IMeta, otherwise this simply returns nil."
   [item & [pass secret :as args]]
-  (try
-    (restore-meta-token* item (str (apply ->hash item args)))
-    #?(:cljs (catch :default nil)
-       :clj (catch Throwable _ nil))))
+  (jab restore-meta-token* item (str (apply ->hash item args))))
 
 (defn map-with-meta-token
   "Returns the map `m` with the hashed token in it's metadata. Only accepts a map and primary-key must be present in map `m`."
