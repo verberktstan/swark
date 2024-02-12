@@ -13,8 +13,7 @@
    :doc "Returns a map containing (all) items in coll, associated by the
    return value of (f val). When the key is logical false, it is not included in
    the returned map.
-   `(key-by count [[:a] [:b :c]]) => {1 [:a] 2 [:b :c]}`"
-   :static true}
+   `(key-by count [[:a] [:b :c]]) => {1 [:a] 2 [:b :c]}`"}
   [f coll]
   (when coll
     (-> f ifn? assert)
@@ -31,8 +30,7 @@
   {:added "0.1.0"
    :arglist '([f item])
    :doc "Returns item with f mapped across it's values.
-   `(map-vals inc {:a 1}) => {:a 2}`"
-   :static true}
+   `(map-vals inc {:a 1}) => {:a 2}`"}
   [f item]
   (when item
     (-> f ifn? assert)
@@ -46,8 +44,7 @@
    :arglists '([map pred])
    :doc "Returns a map containing only those entries in map whose key return
    logical true on evaluation of (pred key).
-   `(filter-keys {:a 1 \"b\" 2} keyword?) => {:a 1}`"
-   :static true}
+   `(filter-keys {:a 1 \"b\" 2} keyword?) => {:a 1}`"}
   [map pred]
   (cond->> map
     pred    (filter (comp pred key))
@@ -62,8 +59,7 @@
    :arglists '([f & args])
    :doc "Returns the result of (apply f args). When any error or exception is
    thrown, simply returns nil instead. So jab is like try but it fails silently.
-   `(jab inc nil) => nil`"
-   :static true}
+   `(jab inc nil) => nil`"}
   [f & args]
   (try
     (apply f args)
@@ -75,8 +71,7 @@
    :doc "Returns a map containing only those entries in map whose keys'
    namespace match ns. When ns is nil, returns a map containing only
    non-namespaced keys.
-   `(select-namespaced {::test 1 :test 2} (namespace ::this)) => {::test 1}`"
-   :static true}
+   `(select-namespaced {::test 1 :test 2} (namespace ::this)) => {::test 1}`"}
   ([map]
    (select-namespaced map nil))
   ([map ns]
@@ -147,8 +142,7 @@
    :doc "Returns nil if input is valid according to spec. When input is invalid,
    returns a map reporting how it is invalid. When input is nil, returns the
    special keyword ::nil.
-   `(valid-map? {:a string?} {:a 12}) ≠> {::predicate string? ::input 12 ::result false}`"
-   :static true}
+   `(valid-map? {:a string?} {:a 12}) ≠> {::predicate string? ::input 12 ::result false}`"}
   [spec input]
   (-> spec map? (assert "Spec should be a map!"))
   (assert (->> spec vals (every? ifn?)) "All vals in spec should implement IFn!")
