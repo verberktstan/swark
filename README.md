@@ -45,6 +45,8 @@ Then you can use the Swark utility functions:
 
 ## Example - Integrate swark.authom & swark.cedric
 
+> Note: Cedric's CSV implementation is currently clj only!
+
 Let's say you want to store a user record, some credentials and check their credentials.
 You can use swark.cedric for the persistence part, and swark.authom for the authentication part.
 
@@ -73,10 +75,10 @@ You can use swark.cedric for the persistence part, and swark.authom for the auth
     (cedric/upsert-items DB PROPS [user]))
 ```
 
-4. Retrieve the user with `cedric/read-items` and check their credentials with `authom/check`:
+4. Retrieve the user with `cedric/find-by-primary-key` and check their credentials with `authom/check`:
 
 ```
-(let [user (-> DB (cedric/read-items {::cedric/primary-key #{:user/id}}) first)]
+(let [user (-> DB (cedric/find-by-primary-key #{:user/id} {:where (comp #{"Readme User"} :user/name)}) first)]
     (-> user (authom/check :user/id "pass" "SECRET") assert))
 ```
 
