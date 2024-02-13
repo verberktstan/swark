@@ -20,17 +20,14 @@
    (assert secret)
    (->hash {::item item ::secret secret} pass)))
 
-(defn- restore-token*
+(defn- restore*
   [item token]
   (vary-meta item assoc ::token token))
 
 (defn with-token
   "Returns the item with the hashed token in it's metadata. `item` should implement IMeta, otherwise this simply returns nil."
   [item & [pass secret :as args]]
-  (try
-    (restore-token* item (str (apply ->hash item args)))
-    #?(:cljs (catch :default nil)
-       :clj (catch Throwable _ nil))))
+  (jab restore* item (str (apply ->hash item args))))
 
 (defn map-with-meta-token
   "Returns the map `m` with the hashed token in it's metadata. Only accepts a map and primary-key must be present in map `m`."
@@ -70,7 +67,7 @@
   [{::keys [token] :as map}]
   (-> map map? assert)
   (cond-> map
-    token (restore-token* token)
+    token (restore* token)
     token (dissoc ::token)))
 
 ;; NOTE: Default props to make swark.cedric serialize and parse Authom tokens automatically
