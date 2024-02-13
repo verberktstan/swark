@@ -23,7 +23,11 @@ Require swark.core in your ns form:
 
 Then you can use the Swark utility functions:
 
-```(swark/key-by :id [{:id 1 :name "one"} {:id 2 :name "two"}])```
+```(swark/key-by :id [{:id 1} {:id 2}]) => {1 {:id 1} 2 {:id 2}}```
+
+```(swark/map-vals count {:a [:b :c] :d [:e]}) => {:a 2 :d 1}```
+
+```(swark/jab / 10 0) => nil```
 
 ## Little tour of Swark utilities
 
