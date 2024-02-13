@@ -1,4 +1,6 @@
 (ns swark.cedric
+  {:added "0.1.4"
+   :doc "Protocol for persisting data as data driven EAV rows."}
   (:require [swark.core :as swark]
             [clojure.edn :as edn]
             [clojure.set :as set]

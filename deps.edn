@@ -40,12 +40,12 @@
    :exec-fn    deps-deploy.deps-deploy/deploy
    :exec-args  {:installer      :remote
                 :sign-releases? true
-                :artifact       "swark-0.1.3.jar"}}
+                :artifact       "swark-0.1.4.jar"}}
   :install
   {:extra-deps {slipset/deps-deploy {:mvn/version "0.2.2"}}
    :exec-fn    deps-deploy.deps-deploy/deploy
    :exec-args  {:installer :local
-                :artifact  "swark-0.1.3.jar"}}
+                :artifact  "swark-0.1.4.jar"}}
 
   #_#_:build {:extra-paths ["build"]
               :deps        {io.github.seancorfield/build-clj {:git/tag "v0.8.0" :git/sha "9bd8b8a"}}
