@@ -137,11 +137,12 @@
   ([rows]
    (merge-rows nil rows))
   ;; TODO: Make it possible to return only the items from the last tx. Or a specific tx?
-  ([{:keys [post-merge-parser]
-     :or {post-merge-parser identity}
+  ([{:keys [post-merge-parser where]
+     :or {post-merge-parser identity
+          where identity}
      :as props} rows]
    (keep
-    (comp post-merge-parser val) ; Only keep vals of the db maps, and omit archived entries
+    (comp #(when (where %) %) post-merge-parser val) ; Only keep vals of the db maps, and omit archived entries
     (transduce
      (comp
       (map row->entry)
@@ -212,6 +213,8 @@
 
 (defprotocol Cedric
   (upsert-items [this props items])
+  (find-by-entity [this entity])
+  (find-by-primary-key [this predicate props])
   (read-items [this props])
   (archive-items [this props items]))
 
@@ -223,6 +226,10 @@
       (->> (swap! rows-atom (fn [rows] (concat rows (apply upsert rows props items))))
            (merge-rows (cond-> {::primary-key #{primary-key}}
                          updated-pvals (assoc ::primary-value (set updated-pvals)))))))
+  (find-by-entity [this entity]
+    (-> this (read-items {::entity #{entity}}) first))
+  (find-by-primary-key [this predicate props]
+    (-> this (read-items (merge props {::primary-key predicate}))))
   (read-items [this props] (merge-rows props @rows-atom))
   (archive-items [this {:keys [primary-key] :as props} items]
     (swap! rows-atom (fn [rows] (concat rows (apply archive rows props items))))
@@ -254,8 +261,13 @@
              updated-pvals (seq (keep #(get % primary-key) items))]
          (write-csv! filename new-rows)
          (merge-rows
-          (cond-> {::primary-key #{primary-key}} updated-pvals (assoc ::primary-value (set updated-pvals)))
+          (cond-> {::primary-key #{primary-key}}
+            updated-pvals (assoc ::primary-value (set updated-pvals)))
           new-rows)))
+     (find-by-entity [this entity]
+       (-> this (read-items {::entity #{entity}}) first))
+     (find-by-primary-key [this predicate props]
+       (-> this (read-items (merge props {::primary-key predicate}))))
      (read-items [this props] (merge-rows props (read-csv filename)))
      (archive-items [this props items]
        (let [rows (read-csv filename)
