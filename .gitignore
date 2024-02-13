@@ -8,3 +8,4 @@
 *.asc
 /deploy
 /build/
+/src/swark/sandbox.cljc
