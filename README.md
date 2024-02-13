@@ -49,7 +49,8 @@ You can use swark.cedric for the persistence part, and swark.authom for the auth
  ```
 (ns my.ns
     (:require [swark.authom :as authom]
-              [swark.cedric :as cedric]))
+              [swark.cedric :as cedric])
+    (:import [swark.cedric Csv]))
 
 (def DB (cedric/Csv. "db.csv"))
 (def PROPS (merge authom/CEDRIC-PROPS {:primary-key :user/id}))
