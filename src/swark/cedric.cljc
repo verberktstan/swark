@@ -243,20 +243,21 @@
   (with-open [reader (open-or-create! filename)]
     (-> reader (csv/read-csv :separator \;) doall)))
 
-(defrecord Csv [filename]
-  Cedric
-  (upsert-items [this {:keys [primary-key] :as props} items]
-    (let [rows (read-csv filename)
-          new-rows (apply upsert rows props items)
-          updated-pvals (seq (keep #(get % primary-key) items))]
-      (write-csv! filename new-rows)
-      (merge-rows
-        (cond-> {::primary-key #{primary-key}} updated-pvals (assoc ::primary-value (set updated-pvals)))
-        new-rows)))
-  (read-items [this props] (merge-rows props (read-csv filename)))
-  (archive-items [this props items]
-    (let [rows (read-csv filename)
-          new-rows (apply archive rows props items)]
-      (write-csv! filename new-rows)
-      {::archived (count new-rows)})))
+#?(:clj
+   (defrecord Csv [filename]
+     Cedric
+     (upsert-items [this {:keys [primary-key] :as props} items]
+       (let [rows (read-csv filename)
+             new-rows (apply upsert rows props items)
+             updated-pvals (seq (keep #(get % primary-key) items))]
+         (write-csv! filename new-rows)
+         (merge-rows
+          (cond-> {::primary-key #{primary-key}} updated-pvals (assoc ::primary-value (set updated-pvals)))
+          new-rows)))
+     (read-items [this props] (merge-rows props (read-csv filename)))
+     (archive-items [this props items]
+       (let [rows (read-csv filename)
+             new-rows (apply archive rows props items)]
+         (write-csv! filename new-rows)
+         {::archived (count new-rows)}))))
 
