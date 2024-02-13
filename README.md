@@ -45,7 +45,7 @@ Then you can use the Swark utility functions:
 
 ## Example - Integrate swark.authom & swark.cedric
 
-> Note: Cedric's CSV implementation is currently clj only!
+> Note: Cedric's CSV implementation is currently clj only! In cljs you can actually use the in-memory implementation (see swark.cedric/Mem)
 
 Let's say you want to store a user record, some credentials and check their credentials.
 You can use swark.cedric for the persistence part, and swark.authom for the authentication part.
