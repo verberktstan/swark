@@ -1,7 +1,7 @@
 (ns swark.authom
   {:added "0.1.3"
    :doc "(Re)store auth related stuff in clojure metadata."}
-  (:require [swark.core :refer [jab]]))
+  (:require [swark.core :refer [->str jab]]))
 
 ;; swark.authom - Atomic authorisation made easy
 
@@ -9,10 +9,11 @@
   "Returns the hash code of `item`. Tries to find it for collections if standard hashing fails."
   ([item]
    (assert item)
-   (or (jab hash item)
-       (jab hash-unordered-coll item)
-       (jab hash-ordered-coll item)
-       (jab mix-collection-hash item 2)))
+   (->str
+     (or (jab hash item)
+         (jab hash-unordered-coll item)
+         (jab hash-ordered-coll item)
+         (jab mix-collection-hash item 2))))
   ([item pass]
    (assert pass)
    (->hash {::item item ::pass pass}))
@@ -20,14 +21,14 @@
    (assert secret)
    (->hash {::item item ::secret secret} pass)))
 
-(defn- restore*
+(defn- restore
   [item token]
   (vary-meta item assoc ::token token))
 
 (defn with-token
   "Returns the item with the hashed token in it's metadata. `item` should implement IMeta, otherwise this simply returns nil."
   [item & [pass secret :as args]]
-  (jab restore* item (str (apply ->hash item args))))
+  (jab restore item (apply ->hash item args)))
 
 (defn map-with-meta-token
   "Returns the map `m` with the hashed token in it's metadata. Only accepts a map and primary-key must be present in map `m`."
@@ -45,7 +46,7 @@
   [item & [pass secret :as args]]
   (let [token (token item)]
     (assert token)
-    (when (= token (str (apply ->hash item args)))
+    (when (= token (apply ->hash item args))
       item)))
 
 (defn map-check-meta-token
@@ -67,7 +68,7 @@
   [{::keys [token] :as map}]
   (-> map map? assert)
   (cond-> map
-    token (restore* token)
+    token (restore token)
     token (dissoc ::token)))
 
 ;; NOTE: Default props to make swark.cedric serialize and parse Authom tokens automatically
