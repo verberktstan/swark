@@ -11,13 +11,14 @@
 
 ;; TODO: Test in cljs as well
 ;; TODO: Move back in time by filtering on txd (transaction's utc date)
-;; TODO: Write rows to csv, and test with that.
 ;; TODO: Add some memoization with swark.core/memoire
+;; TODO: Implement joins via join-rows, always one to many?
 
 (defn- utc-now []
   #?(:cljs (.toUTCIsoString (gd/DateTime.))
      :clj (.toString (Instant/now))))
 
+;; NOTE: These serializers are extensible, define your own methods for your database.
 (defmulti value-serializer (juxt ::primary-key ::attribute))
 (defmethod value-serializer :default [_] swark/->str)
 
@@ -41,7 +42,7 @@
 
 (def ^:private entry->row (juxt ::tx-utc-at ::primary-key ::primary-value ::attribute ::value ::flags))
 
-(defn serialize
+(defn- serialize
   [{:keys [primary-key flags]
     :or   {flags #{}}} item]
   (let [entity    (find item primary-key)
@@ -130,7 +131,7 @@
 (defn- filterer [props]
   (filter (partial filter-entry props)))
 
-(defn merge-rows
+(defn- merge-rows
   "Return eagerly parsed and merged rows"
   ([rows]
    (merge-rows nil rows))
@@ -183,7 +184,7 @@
       (diff-rows props (->> db-items (filter (comp #{entity} #(find % primary-key))) first) item)
       (serialize props item))))
 
-(defn upsert
+(defn- upsert
   [rows {:keys [pre-upsert-serializer primary-key]
          :or {pre-upsert-serializer identity}
          :as props} & items]
@@ -198,29 +199,10 @@
      nil
      (map pre-upsert-serializer items))))
 
-(defn archive
+(defn- archive
   [rows {:keys [primary-key] :as props} & items]
   (assert (and (seq items) (every? #(get % primary-key) items)))
   (mapcat (partial serialize (assoc props :flags #{::archived})) items))
-
-(comment
-  ;; Step 1 make this work in memory!
-  (def DB (atom nil))
-  (swap! DB (fn [db]
-              (concat db (upsert db {:primary-key      :user/id
-                                     :next-primary-val swark/unid} {:user/name "Antilla"} {:user/name "Ben Hur"}))))
-  (merge-rows {::entity #{[:user/id "c"] [:user/id "09"]}} @DB)
-  (swap! DB (fn [db]
-              (concat db (upsert db {:primary-key :user/id} {:user/id "2" :user/name "VOID"}))))
-  #_(upsert @DB {:primary-key      :user/id
-                 :next-primary-val swark/unid} {:user/name "Antilla"} {:user/name "Ben Hur"})
-
-  (swap! DB (fn [db]
-              (concat db (archive db {:primary-key :user/id} {:user/id "bb"} {:user/id "f"}))))
-  
-
-  ;; Step 2 Make this work with csv
-  )
 
 ;; Instead of CRUD, we have URA
 ;; Upsert = Create and Update
@@ -278,18 +260,4 @@
           new-rows (apply archive rows props items)]
       (write-csv! filename new-rows)
       {::archived (count new-rows)})))
-
-(comment
-  (def CM (Mem. (atom nil)))
-  (def CC (Csv. "testdata.csv"))
-
-  (upsert-items CC {:primary-key :user/id} [{:user/name "Stan"} {:user/name "Corinne"} {:user/name "David"} {:user/name "Theodor"} {:user/name "Naomi"} {:user/name "Arnold"}])
-  ;; TODO: What if this doesn't exist?
-  (upsert-items CC {:primary-key :user/id} [{:user/id "7890" :user/name "Naomi"}])
-  ;; (read-items CM {::entity #{[:user/id "9"]}})
-  (read-items #_CM CC {})
-  (archive-items #_CM CC {:primary-key :user/id} [{:user/id "1"} {:user/id "9"}])
-  @(:rows-atom CM)
-
-  )
 

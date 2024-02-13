@@ -26,8 +26,8 @@
 (deftest pipeline-test
   (let [user1 {:id 1 :username "Stan" :category 1}
         user2 #:user{:id 2 :name "Nats" :gender :unknown}
-        rows1 (sut/serialize {:primary-key :id} user1)
-        rows2 (sut/serialize {:primary-key :user/id} user2)]
+        rows1 (#'sut/serialize {:primary-key :id} user1)
+        rows2 (#'sut/serialize {:primary-key :user/id} user2)]
     (are [result rows] (= result (->> rows
                                       (map (partial drop 1))
                                       (map (partial take 4))))
@@ -38,7 +38,7 @@
     (is
      (= [{:username "Stan" :id 1 :category 1}
          #:user{:name "Nats" :id 2 :gender :unknown}]
-        (sut/merge-rows (concat rows1 rows2))))))
+        (#'sut/merge-rows (concat rows1 rows2))))))
 
 (def ^:private NAMES #{"Alfa" "Bravo" "Charlie" "Delta" "Echo" "Foxtrot" "Golf" "Hotel" "India" "Juliett" "Kilo" "Lima" "Mike" "November" "Oscar" "Papa" "Quebec" "Romeo" "Sierra" "Tango" "Uniform" "Victor" "Whiskey" "X-ray" "Yankee" "Zulu"})
 
