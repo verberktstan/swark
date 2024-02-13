@@ -41,24 +41,24 @@ You can use swark.cedric for the persistence part, and swark.authom for the auth
 (def PROPS (merge authom/CEDRIC-PROPS {:primary-key :user/id}))
  ```
 
-2. Create a new user record like so:
+2. Create a new user record with `cedric/upsert-items`:
 
 ```
 (def USER (-> DB (cedric/upsert-items PROPS [{:user/name "Readme User"}]) first))
 ```
 
-3. Store credentials by upserting the user
+3. Store credentials (generated with `authom/with-token`) by upserting the user with `cedric/upsert-items`
 
 ```
-(let [user (authom/map-with-meta-token USER :user/id "pass" "SECRET")]
+(let [user (authom/with-token USER :user/id "pass" "SECRET")]
     (cedric/upsert-items DB PROPS [user]))
 ```
 
-4. Retrieve the user and check their credentials
+4. Retrieve the user with `cedric/read-items` and check their credentials with `authom/check`:
 
 ```
 (let [user (-> DB (cedric/read-items {::cedric/primary-key #{:user/id}}) first)]
-    (-> user (authom/map-check-meta-token :user/id "pass" "SECRET") assert))
+    (-> user (authom/check :user/id "pass" "SECRET") assert))
 ```
 
 ## Tests
