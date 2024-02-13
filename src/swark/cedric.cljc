@@ -11,6 +11,11 @@
             [clojure.data.csv :as csv])
   #?(:clj (:import [java.time Instant])))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; CEDRIC - the Cedric Event DRIven datapersistence Companion
+;; Store associatve data (maps) as rows in an append-only EAV database.
+
 ;; TODO: Test in cljs as well
 ;; TODO: Move back in time by filtering on txd (transaction's utc date)
 ;; TODO: Add some memoization with swark.core/memoire
