@@ -25,7 +25,21 @@ Then you can use the Swark utility functions:
 
 ```(swark/key-by :id [{:id 1 :name "one"} {:id 2 :name "two"}])```
 
-## Example
+## Little tour of Swark utilities
+
+- `key-by`: Returns a map where all items are keyed by the result of calling (f item)
+- `map-vals`: Returns a map where f is applied to all items in the input map.
+- `filter-keys`: Returns a map containing only the map-entries whose key returns logical true when supplied to a predicate fn.
+- `select-namespaced`: Returns a map containing only those map-entries whose key's namespace is equal to the supplied namespace.
+- `jab`: Try and fail silently, returning nil when any kind of error or exception is thrown.
+- `->str`: Returns input coerced to a (trimmed) string. Support (namesapced) keywords etc.
+- `unid`: Return a unique id string.
+- `->keyword`: Returns input coerced to a keyword, replacing whitespace with dashes.
+- `invalid-map?`: Minimalistic spec checker, returns logical true if the input does not respect the spec-map. Spec map is simply a map with predicates as vals.
+- `valid-map?`: Complement of invalid-map?
+- `memoir`: Like memoize, but with flushing. Flush the complete cache, or specific parts.
+
+## Example - Integrate swark.authom & swark.cedric
 
 Let's say you want to store a user record, some credentials and check their credentials.
 You can use swark.cedric for the persistence part, and swark.authom for the authentication part.
