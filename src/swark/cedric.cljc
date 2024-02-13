@@ -102,7 +102,6 @@
   {entity (with-meta (into {attribute value} [entity]) {::flags flags}) #_entry})
 
 (defn- merge-entries [map1 {::keys [attribute] :as map2}]
-  (some-> map2 meta ::flags println)
   (cond
     (some-> map2 meta ::flags ::archived)
     nil ; Return nil, this value is to be removed from the result later
