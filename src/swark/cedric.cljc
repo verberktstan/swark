@@ -212,11 +212,11 @@
 ;; Archive = Delete
 
 (defprotocol Cedric
-  (upsert-items [this props items])
-  (find-by-entity [this entity])
-  (find-by-primary-key [this predicate props])
-  (read-items [this props])
-  (archive-items [this props items]))
+  (upsert-items [this props items] "Creates or updates the items, returning the items (with primary-key if created).")
+  (find-by-entity [this entity] "Finds and returns one db entry, based off one specific entity.")
+  (find-by-primary-key [this predicate props] "Finds and returns db entries where primary-key matches predicate, with additional props like {:where (comp #{'aname'} :name)}")
+  (read-items [this props] "Returns all items with low level selectors in props, like ::primary-key, ::primary-value, ::entity, ::attribute, ::value and :where.")
+  (archive-items [this props items] "Marks the items as archived in the db. Returns {::archived 2} where 2 is the item count actually archived."))
 
 (defrecord Mem [rows-atom]
   Cedric
