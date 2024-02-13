@@ -10,18 +10,19 @@
 (defn key-by
   {:added "0.1.0"
    :arglist '([f coll])
-   :doc "Returns a map containing (all) items in coll, associated by the
-   return value of (f val). When the key is logical false, it is not included in
-   the returned map.
-   `(key-by count [[:a] [:b :c]]) => {1 [:a] 2 [:b :c]}`"}
-  [f coll]
-  (when coll
-    (-> f ifn? assert)
-    (-> coll coll? assert)
-    (->> coll
-         (map (juxt f identity))
-         (filter first)
-         (into {}))))
+   :doc "Returns a map containing all items in coll, associated by the return
+        value of (f val). When the key is logical false, it is not included in
+        the returned map. Returns a transducer when no collection is provided.
+        `(key-by :id [{:id 12} {:id 34}]) => {12 {:id 12} 34 {:id 34}}`"}
+  ([f]
+   (comp
+    (map (juxt f identity))
+    (filter first)))
+  ([f coll]
+   (when-let [s (seq coll)]
+     (-> f ifn? assert)
+     (-> s coll? assert)
+     (into {} (key-by f) s))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Regarding maps
@@ -29,15 +30,16 @@
 (defn map-vals
   {:added "0.1.0"
    :arglist '([f item])
-   :doc "Returns item with f mapped across it's values.
-   `(map-vals inc {:a 1}) => {:a 2}`"}
-  [f item]
-  (when item
-    (-> f ifn? assert)
-    (-> item map? assert)
-    (->> item
-         (map (juxt key (comp f val)))
-         (into {}))))
+   :doc "Returns item with f mapped across it's values. Returns a transducer
+        when no collection is provided.
+        `(map-vals count {:a [:b c] :d [:e]}) => {:a 2 :d 1}`"}
+  ([f]
+   (map (juxt key (comp f val))))
+  ([f item]
+   (when item
+     (-> f ifn? assert)
+     (-> item map? assert)
+     (into {} (map-vals f) item))))
 
 (defn filter-keys
   {:added "0.1.3"
@@ -51,19 +53,7 @@
     map     seq
     :always (into {})))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Try and return nil when something is thrown
-
-(defn jab
-  {:added "0.1.3"
-   :arglists '([f & args])
-   :doc "Returns the result of (apply f args). When any error or exception is
-   thrown, simply returns nil instead. So jab is like try but it fails silently.
-   `(jab inc nil) => nil`"}
-  [f & args]
-  (try
-    (apply f args)
-    #?(:cljs (catch :default _ nil) :clj (catch Throwable _ nil))))
+(declare jab)
 
 (defn select-namespaced
   {:added "0.1.3"
@@ -79,6 +69,20 @@
    (let [ns (jab name ns)
          predicate (if ns #{ns} nil?)]
      (filter-keys map (comp predicate namespace)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Try and return nil when something is thrown
+
+(defn jab
+  {:added "0.1.3"
+   :arglists '([f & args])
+   :doc "Returns the result of (apply f args). When any error or exception is
+   thrown, simply returns nil instead. So jab is like try but it fails silently.
+   `(jab inc nil) => nil`"}
+  [f & args]
+  (try
+    (apply f args)
+    #?(:cljs (catch :default _ nil) :clj (catch Throwable _ nil))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Regarding strings
