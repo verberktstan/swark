@@ -20,15 +20,15 @@
    (assert secret)
    (->hash {::item item ::secret secret} pass)))
 
-(defn- restore-meta-token*
+(defn- restore-token*
   [item token]
   (vary-meta item assoc ::token token))
 
-(defn with-meta-token
+(defn with-token
   "Returns the item with the hashed token in it's metadata. `item` should implement IMeta, otherwise this simply returns nil."
   [item & [pass secret :as args]]
   (try
-    (restore-meta-token* item (str (apply ->hash item args)))
+    (restore-token* item (str (apply ->hash item args)))
     #?(:cljs (catch :default nil)
        :clj (catch Throwable _ nil))))
 
@@ -37,16 +37,16 @@
   [m primary-key & [pass secret :as args]]
   (-> m map? assert)
   (-> m (get primary-key) assert)
-  (merge (apply with-meta-token (select-keys m [primary-key]) args) m))
+  (merge (apply with-token (select-keys m [primary-key]) args) m))
 
 ;; Simply return the token from the Authom metadata
-(def meta-token (comp ::token meta))
+(def token (comp ::token meta))
 
-(defn check-meta-token
+(defn check-token
   "Returns the item when pass and secret are valid with respect to the item.
   Throws an AssertionError if `item` doens't have a meta-token."
   [item & [pass secret :as args]]
-  (let [token (meta-token item)]
+  (let [token (token item)]
     (assert token)
     (when (= token (str (apply ->hash item args)))
       item)))
@@ -55,13 +55,13 @@
   [m primary-key & [pass secret :as args]]
   (-> m map? assert)
   (-> m (get primary-key) assert)
-  (apply check-meta-token (select-keys m [primary-key]) args))
+  (apply check-token (select-keys m [primary-key]) args))
 
 (defn enrich-token
   "Returns map with Authom's meta-token associated with ::token."
   [map]
   (-> map map? assert)
-  (let [token (meta-token map)]
+  (let [token (token map)]
     (cond-> map
       token (assoc ::token token))))
 
@@ -70,7 +70,7 @@
   [{::keys [token] :as map}]
   (-> map map? assert)
   (cond-> map
-    token (restore-meta-token* token)
+    token (restore-token* token)
     token (dissoc ::token)))
 
 ;; NOTE: Default props to make swark.cedric serialize and parse Authom tokens automatically
