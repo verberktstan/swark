@@ -88,15 +88,17 @@ Run the tests with `clojure -X:test/run`
 
 ## Development
 
-Start a repl with `clojure -M:repl/reloaded`
-
-### Local installation
-
-Install Swark locally with `clj -X:install`
+Start a repl simply by running `clj -M:repl/basic` command in your terminal.
+You can connect your editor via nrepl afterwards, e.g. from emacs; `cider-connect-clj`
+Or create a repl from your editor, e.g. from emacs; `cider-jack-in-clj`
 
 ### Jar creation
 
 Create an uberjar with `clj -X:uberjar :jar swark-0.1.4.jar`
+
+### Local installation
+
+Install Swark locally with `clj -X:install`
 
 ## License
 
