@@ -84,7 +84,9 @@ You can use swark.cedric for the persistence part, and swark.authom for the auth
 
 ## Tests
 
-Run the tests with `clojure -X:test/run`
+Run clojure tests with `clojure -X:test/run`
+
+Run cljs tests with `clojure -X:test-cljs/run -M unit-cljs`
 
 ## Development
 

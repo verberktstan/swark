@@ -3,7 +3,7 @@
  {org.clojure/clojure  {:mvn/version "1.11.0"}
   org.clojure/data.csv {:mvn/version "1.0.1"}} ;; NOTE: For testing CSV input/output only..
  :aliases
- { :repl/basic
+ {:repl/basic
   {:extra-deps {nrepl/nrepl       {:mvn/version "1.0.0"}
                 cider/cider-nrepl {:mvn/version "0.30.0"}}
    :main-opts  ["-m" "nrepl.cmdline"
@@ -19,6 +19,14 @@
   :test/run
   {:extra-paths ["test"]
    :extra-deps  {lambdaisland/kaocha {:mvn/version "1.80.1274"}}
+   :main-opts   ["-m" "kaocha.runner"]
+   :exec-fn     kaocha.runner/exec-fn
+   :exec-args   {:randomize? false
+                 :fail-fast? true}}
+
+  :test-cljs/run
+  {:extra-paths ["test"]
+   :extra-deps  {lambdaisland/kaocha-cljs {:mvn/version "1.5.154"}}
    :main-opts   ["-m" "kaocha.runner"]
    :exec-fn     kaocha.runner/exec-fn
    :exec-args   {:randomize? false
