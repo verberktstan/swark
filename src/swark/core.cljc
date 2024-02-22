@@ -84,6 +84,22 @@
     (apply f args)
     #?(:cljs (catch :default _ nil) :clj (catch Throwable _ nil))))
 
+(defn with-retries
+  {:added "0.1.41" ; NOTE: To be released!
+   :arglist '([n f & args])
+   :doc "Returns the result of (apply f args) after running it n times. When
+   something is thrown on the last try, returns the throwable map."}
+  [n f & args]
+  (-> n pos-int? assert)
+  (loop [n n, result nil]
+    (if (zero? n)
+      (or (jab Throwable->map result) result) ; Try to coerce to map if something is Thrown
+      (recur
+       (dec n)
+       (try
+         (apply f args)
+         (catch Throwable t t))))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Regarding strings
 
