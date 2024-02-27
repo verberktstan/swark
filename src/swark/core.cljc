@@ -250,8 +250,7 @@
   {:added "0.1.41"
    :arglist '([buffered])
    :doc "Stops the underlying go-loop and closes all channels. Returns nil."}
-  [{::keys [in] :as buffered}]
-  (assert in)
-  (a/>!! in [::closed!]) ; NOTE: Close the running go-loop
+  [buffered]
+  (put! buffered nil) ; NOTE: Close the running go-loop
   (let [channels (juxt ::in ::out)]
     (run! a/close! (channels buffered))))
