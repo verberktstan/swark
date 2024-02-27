@@ -55,10 +55,11 @@ You can use swark.cedric for the persistence part, and swark.authom for the auth
  ```
 (ns my.ns
     (:require [swark.authom :as authom]
-              [swark.cedric :as cedric])
+              [swark.cedric :as cedric]
+              [swark.core   :as swark])
     (:import [swark.cedric Csv]))
 
-(def DB (cedric/Csv. "db.csv"))
+(def DB (cedric/Csv. "/tmp/db.csv"))
 (def PROPS (merge authom/CEDRIC-PROPS {:primary-key :user/id}))
  ```
 
@@ -80,6 +81,15 @@ You can use swark.cedric for the persistence part, and swark.authom for the auth
 ```
 (let [user (-> DB (cedric/find-by-primary-key #{:user/id} {:where (comp #{"Readme User"} :user/name)}) first)]
     (-> user (authom/check :user/id "pass" "SECRET") assert))
+```
+
+5. Since the csv file might change in the mean while, it is advised to execute all db actions as an asynchronous transaction. You can make use of `with-buffer` & `put!` like so:
+```
+(let [db-connection (swark/with-buffer! (cedric/Csv. "/tmp/db.csv"))
+      transact!     (partial swark/put! db-connection)]
+    (transact! cedric/upsert-items {:primary-key :id} [{:test "data"} {:more "testdata" :something 123}]) ; Returns the upserted items.
+    (transact! cedric/read-items   {}) ; Returns all items read.
+    (swark/close! db-connection)) ; Don't forget to close the async connection.
 ```
 
 ## Tests

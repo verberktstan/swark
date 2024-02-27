@@ -87,7 +87,7 @@
 
 ;; TODO: Add tests
 (defn with-retries
-  {:added "0.1.41" ; NOTE: To be released!
+  {:added "0.1.41"
    :arglist '([n f & args])
    :doc "Returns the result of (apply f args) after running it n times. When
    something is thrown on the last try, returns the throwable map."}
