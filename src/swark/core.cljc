@@ -1,5 +1,6 @@
 (ns swark.core
-  (:require [clojure.string :as str]))
+  (:require [clojure.core.async :as a]
+            [clojure.string :as str]))
 
 ;; SWiss ARmy Knife - Your everyday clojure toolbelt!
 ;; Copyright 2024 - Stan Verberkt (verberktstan@gmail.com)
@@ -71,7 +72,7 @@
      (filter-keys map (comp predicate namespace)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Try and return nil when something is thrown
+;; Try and catch
 
 (defn jab
   {:added "0.1.3"
@@ -84,8 +85,9 @@
     (apply f args)
     #?(:cljs (catch :default _ nil) :clj (catch Throwable _ nil))))
 
+;; TODO: Add tests
 (defn with-retries
-  {:added "0.1.41" ; NOTE: To be released!
+  {:added "0.1.41"
    :arglist '([n f & args])
    :doc "Returns the result of (apply f args) after running it n times. When
    something is thrown on the last try, returns the throwable map."}
@@ -209,3 +211,46 @@
   (summ [10 12])
   (summ :flush) ; Flush the complete cache (for all inputs)
   )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Async stuff
+
+;; TODO: Support channel transducers and ex-handler as well
+(defn with-buffer
+  {:added "0.1.41"
+   :arglist '([x])
+   :doc "Starts a go-loop and returns a map with ::in and ::out async channels.
+   Input to ::in chan is expected to be [f & args] or [::closed!]. In the latter
+   case, the go-loop will stop. In the first case, (apply f x args) will be called
+   and the result is put on ::out chan."}
+  [x]
+  (let [in-chan  (a/chan (a/sliding-buffer 99))
+        out-chan (a/chan (a/dropping-buffer 99))]
+    (a/go-loop [[f & args] (a/<! in-chan)]
+      (when-not (some-> f #{::closed!}) ; NOTE: Stop the go-loop in this case
+        (if-let [result (when f (apply f x args))]
+          (a/>! out-chan result)
+          (a/>! out-chan ::nil))
+        (recur (a/<! in-chan))))
+    {::in  in-chan
+     ::out out-chan}))
+
+(defn put!
+  {:added "0.1.41"
+   :arglist '([buffered & args])
+   :doc "Put args on the ::in chan and blocks until something is returned via
+   ::out chan. Returns the returned value."}
+  [{::keys [in out]} & args]
+  (assert in)
+  (assert out)
+  (a/go (a/>! in (or args [::closed!]))) ; NOTE: Close the go-loop when nil args
+  (a/<!! out))
+
+(defn close!
+  {:added "0.1.41"
+   :arglist '([buffered])
+   :doc "Stops the underlying go-loop and closes all channels. Returns nil."}
+  [buffered]
+  (put! buffered nil) ; NOTE: Close the running go-loop
+  (let [channels (juxt ::in ::out)]
+    (run! a/close! (channels buffered))))

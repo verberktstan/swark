@@ -55,10 +55,11 @@ You can use swark.cedric for the persistence part, and swark.authom for the auth
  ```
 (ns my.ns
     (:require [swark.authom :as authom]
-              [swark.cedric :as cedric])
+              [swark.cedric :as cedric]
+              [swark.core   :as swark])
     (:import [swark.cedric Csv]))
 
-(def DB (cedric/Csv. "db.csv"))
+(def DB (cedric/Csv. "/tmp/db.csv"))
 (def PROPS (merge authom/CEDRIC-PROPS {:primary-key :user/id}))
  ```
 
@@ -82,13 +83,21 @@ You can use swark.cedric for the persistence part, and swark.authom for the auth
     (-> user (authom/check :user/id "pass" "SECRET") assert))
 ```
 
+5. Since the csv file might change in the mean while, it is advised to execute all db actions as an asynchronous transaction. You can make use of `cedric/make-connection` like so:
+```
+(let [{::cedric/keys [transact! close!]} (-> "/tmp/db.csv" cedric/Csv. cedric/make-connection)]
+    (transact! cedric/upsert-items {:primary-key :id} [{:test "data"} {:more "testdata" :something 123}]) ; Returns the upserted items.
+    (transact! cedric/read-items   {}) ; Returns all items read.
+    (close!)) ; Don't forget to close the async connection.
+```
+
 ## Tests
 
 Run the tests with `clojure -X:test/run`
 
 ## Development
 
-Start a repl simply by running `clj -M:repl/basic` command in your terminal.
+Start a repl simply by running `clojure -M:repl/basic` command in your terminal.
 You can connect your editor via nrepl afterwards, e.g. from emacs; `cider-connect-clj`
 Or create a repl from your editor, e.g. from emacs; `cider-jack-in-clj`
 
