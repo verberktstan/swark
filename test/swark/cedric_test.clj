@@ -70,16 +70,16 @@
                          shuffle
                          (take 3)
                          (map #(assoc %2 :person/name %1) new-names))
-            updated (transact! sut/upsert-items db props persons)]
+            updated (transact! sut/upsert-items props persons)]
         (testing "returns the updated items"
           (is (-> updated count #{3}))
           (is (->> updated (map :person/name) set (= (set new-names))))))
       (let [persons (->> result
                          shuffle
                          (take 5))
-            archived (transact! sut/archive-items db props persons)]
+            archived (transact! sut/archive-items props persons)]
         (testing "returns the number of ::archived items"
           (is (= {::sut/archived 5} archived))))
       (testing "returns all the items"
-        (is (-> db (transact! sut/read-items {}) count #{20})))
+        (is (-> (transact! sut/read-items {}) count #{20})))
       (swark/close! db-conn))))

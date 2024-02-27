@@ -98,7 +98,7 @@ Run the tests with `clojure -X:test/run`
 
 ## Development
 
-Start a repl simply by running `clj -M:repl/basic` command in your terminal.
+Start a repl simply by running `clojure -M:repl/basic` command in your terminal.
 You can connect your editor via nrepl afterwards, e.g. from emacs; `cider-connect-clj`
 Or create a repl from your editor, e.g. from emacs; `cider-jack-in-clj`
 
