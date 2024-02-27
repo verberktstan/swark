@@ -14,6 +14,7 @@
 ;; CEDRIC - the Cedric Event DRIven datapersistence Companion
 ;; Store associatve data (maps) as rows in an append-only EAV database.
 
+;; TODO: Add headers to csv db file
 ;; TODO: Test in cljs as well
 ;; TODO: Move back in time by filtering on txd (transaction's utc date)
 ;; TODO: Add some memoization with swark.core/memoire
@@ -278,11 +279,23 @@
          (write-csv! filename new-rows)
          {::archived (count new-rows)}))))
 
+(defn make-connection
+  "Returns a map with ::transact! and ::close! functions."
+  [db]
+  (let [conn (swark/with-buffer db)]
+    {::transact! (partial swark/put! conn)
+     ::close!    #(swark/close! conn)}))
+
 (comment
-  ;; When using Csv implementation
-  (def db-connection (swark/with-buffer (Csv. "/tmp/testdb.csv")))
+  (let [connection (-> "/tmp/testdb123.csv" Csv. make-connection)]
+    (def transact! (::transact! connection))
+    (def close!    (::close!    connection)))
 
-  (swark/put! db-connection upsert-items {:primary-key :id} [{:test 123 :more "stuff"}])
-  (swark/put! db-connection read-items {})
-
-  (swark/close! db-connection))
+  ;; Upsert items via the transact! function
+  (transact! upsert-items {:primary-key :user/id} [{:user/name "Arnold"} {:user/name "Naomi"} {:user/name "Theodor"}])
+  ;; Read (all) items via the transact! function
+  (transact! read-items {})
+  ;; Archive an item via the transact! function
+  (transact! archive-items {:primary-key :user/id} [{:user/id "4"}])
+  ;; Close the connection via the close! function
+  (close!))
