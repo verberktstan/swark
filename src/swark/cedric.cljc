@@ -6,11 +6,9 @@
             [clojure.set :as set]
             [clojure.data :as data]
             #?(:cljs [goog.date :as gd])
-            #?(:clj [clojure.string :as str])
             #?(:clj [clojure.java.io :as io])
             [clojure.data.csv :as csv])
   #?(:clj (:import [java.time Instant])))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; CEDRIC - the Cedric Event DRIven datapersistence Companion
@@ -280,3 +278,11 @@
          (write-csv! filename new-rows)
          {::archived (count new-rows)}))))
 
+(comment
+  ;; When using Csv implementation
+  (def db-connection (swark/with-buffer (Csv. "/tmp/testdb.csv")))
+
+  (swark/put! db-connection upsert-items {:primary-key :id} [{:test 123 :more "stuff"}])
+  (swark/put! db-connection read-items {})
+
+  (swark/close! db-connection))

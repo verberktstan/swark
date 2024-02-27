@@ -96,3 +96,10 @@
     #"Spec should be a map!" nil {:id -1}
     #"All vals in spec should implement IFn" {:id "not IFn"} {:id -1} ; Spec
     #"Input should be a map!" {:id nat-int?} false)))
+
+(t/deftest with-buffer-put-close
+  (let [{::sut/keys [in out] :as m} (sut/with-buffer {:test "map"})]
+    (t/is (and in out))
+    (t/is (= {:test "map" :key :value} (sut/put! m assoc :key :value)))
+    (doto m sut/close!) ; Close it, after this every eval of put! returns nil
+    (t/is (nil? (sut/put! m assoc :another "entry")))))
