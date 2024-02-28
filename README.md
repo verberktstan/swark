@@ -7,7 +7,7 @@ SWiss ARmy Knife - Your everyday clojure toolbelt!
 This library contains functionality that you might need every single day as a happy clojure(script) developer.
 The aim is to provide composable functions that you can use everyday, but are just not as trivial as `(some (comp #{42} :answer) answers)`.
 
-All functionality *should* work in both Clojure and Clojurescript.
+Most functionality *should* work in both Clojure and Clojurescript.
 
 ## Basic usage
 
@@ -15,7 +15,7 @@ All functionality *should* work in both Clojure and Clojurescript.
 
 Add this dependency to the :deps map in deps.edn:
 
-```org.clojars.stanv/swark {:mvn/version "0.1.4"}```
+```org.clojars.stanv/swark {:mvn/version "0.1.41"}```
 
 Require swark.core in your ns form:
 
@@ -129,7 +129,7 @@ Or create a repl from your editor, e.g. from emacs; `cider-jack-in-clj`
 
 ### Jar creation
 
-Create an uberjar with `clj -X:uberjar :jar swark-0.1.4.jar`
+Create an uberjar with `clj -X:uberjar :jar swark-0.1.41.jar`
 
 ### Local installation
 
