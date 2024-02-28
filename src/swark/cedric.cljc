@@ -288,8 +288,8 @@
 
 (comment
   (let [connection (-> "/tmp/testdb123.csv" Csv. make-connection)]
-    (def transact! (::transact! connection))
-    (def close!    (::close!    connection)))
+    (def transact! (::transact! connection)) ; Define transact! for this connection
+    (def close!    (::close!    connection))) ; Define close! for this connection
 
   ;; Upsert items via the transact! function
   (transact! upsert-items {:primary-key :user/id} [{:user/name "Arnold"} {:user/name "Naomi"} {:user/name "Theodor"}])
