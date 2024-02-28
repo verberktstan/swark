@@ -1,5 +1,6 @@
 (ns swark.core
   (:require [clojure.core.async :as a]
+            [clojure.edn :as edn]
             [clojure.string :as str]))
 
 ;; SWiss ARmy Knife - Your everyday clojure toolbelt!
@@ -123,7 +124,7 @@
   ([] (-> (random-uuid) str))
   ([existing]
    (unid nil existing))
-  ([{:keys [min-length] :or {min-length 1}} existing]
+  ([{:keys [min-length filter-regex no-dashes?] :or {min-length 1}} existing]
    (-> existing set? assert)
    (reduce
     (fn [s char]
@@ -131,7 +132,13 @@
         (reduced s)
         (str s char)))
     nil
-    (seq (unid)))))
+    (cond->> (seq (unid))
+      no-dashes?   (remove #{\-})
+      filter-regex (filter (comp (partial re-find filter-regex) str))))))
+
+(comment
+  (unid {:filter-regex #"\d" :min-length 13} #{})
+  (re-find #"\d" (str \a)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Regarding keywords

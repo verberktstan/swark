@@ -1,5 +1,6 @@
 (ns swark.core-test
-  (:require [clojure.test :as t]
+  (:require [clojure.edn :as edn]
+            [clojure.test :as t]
             [swark.core :as sut]))
 
 (t/deftest key-by
@@ -70,7 +71,16 @@
   (t/is (-> #{"x"} sut/unid count #{1}))
   (t/is (->> #{"xyzab"} (sut/unid {:min-length 5}) count (>= 5)))
   (t/is (-> (reduce (fn [x _] (conj x (sut/unid x))) #{} (range 999)) count #{999}))
-  (t/is (-> (reduce (fn [x _] (conj x (sut/unid {:min-length 4} x))) #{} (range 999)) count #{999})))
+  (t/is (-> (reduce (fn [x _] (conj x (sut/unid {:min-length 4} x))) #{} (range 999)) count #{999}))
+  (let [three-digits (sut/unid {:min-length 3 :no-dashes? true :filter-regex #"\d"} #{})
+        four-letters (sut/unid {:min-length 4 :no-dashes? true :filter-regex #"\D"} #{})
+        five-chars   (sut/unid {:min-length 5} #{})]
+    (t/is (-> three-digits count #{3}))
+    (t/is (->> three-digits seq (every? (comp number? edn/read-string str))))
+    (t/is (-> four-letters count #{4}))
+    (t/is (->> four-letters seq (every? (comp (partial re-find #"\D") str))))
+    (t/is (-> five-chars count #{5}))
+    (t/is (->> five-chars seq (every? (comp (partial re-find #"[a-z]|[0-9]|\-") str))))))
 
 (t/deftest ->keyword
   (t/are [result args] (= result (apply sut/->keyword args))
