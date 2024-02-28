@@ -1,13 +1,14 @@
 (ns swark.cedric
   {:added "0.1.4"
    :doc "Protocol for persisting data as data driven EAV rows."}
-  (:require [swark.core :as swark]
-            [clojure.edn :as edn]
+  (:require [clojure.edn :as edn]
             [clojure.set :as set]
             [clojure.data :as data]
             #?(:cljs [goog.date :as gd])
             #?(:clj [clojure.java.io :as io])
-            [clojure.data.csv :as csv])
+            [clojure.data.csv :as csv]
+            [swark.atomic :as atomic]
+            [swark.core :as swark])
   #?(:clj (:import [java.time Instant])))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -282,9 +283,9 @@
 (defn make-connection
   "Returns a map with ::transact! and ::close! functions."
   [db]
-  (let [conn (swark/atomic db)]
-    {::transact! (partial swark/put! conn)
-     ::close!    #(swark/close! conn)}))
+  (let [conn (atomic/atomic db)]
+    {::transact! (partial atomic/put! conn)
+     ::close!    #(atomic/close! conn)}))
 
 (comment
   (let [connection (-> "/tmp/testdb123.csv" Csv. make-connection)]
