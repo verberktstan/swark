@@ -77,7 +77,7 @@
                          (take 5))
             archived (transact! sut/archive-items props persons)]
         (testing "returns the number of ::archived items"
-          (is (= {::sut/archived 5} archived))))
+          (is (= 5 archived))))
       (testing "returns all the items"
         (is (-> (transact! sut/read-items {}) count #{20})))
       (close!))))

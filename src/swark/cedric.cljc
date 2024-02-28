@@ -238,7 +238,7 @@
   (read-items [this props] (merge-rows props @rows-atom))
   (archive-items [this {:keys [primary-key] :as props} items]
     (swap! rows-atom (fn [rows] (concat rows (apply archive rows props items))))
-    {::archived (count items)}))
+    (count items)))
 
 (defn- write-csv! [filename rows]
   (with-open [writer (io/writer filename :append true)]
@@ -278,7 +278,7 @@
        (let [rows (read-csv filename)
              new-rows (apply archive rows props items)]
          (write-csv! filename new-rows)
-         {::archived (count new-rows)}))))
+         (count new-rows)))))
 
 (defn make-connection
   "Returns a map with ::transact! and ::close! functions."
