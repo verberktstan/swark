@@ -42,6 +42,9 @@ Then you can use the Swark utility functions:
 - `invalid-map?`: Minimalistic spec checker, returns logical true if the input does not respect the spec-map. Spec map is simply a map with predicates as vals.
 - `valid-map?`: Complement of invalid-map?
 - `memoir`: Like memoize, but with flushing. Flush the complete cache, or specific parts.
+- `atomic`: Returns a map with in- and output async channels to provide atomic interactions for side-effecting functionality.
+- `put!`: Puts an instruction on the atomic's input channel, blocks and returns the response.
+- `close!`: Closes the atomic's channels and stops the internal go-loop.
 
 ## Example - Integrate swark.authom & swark.cedric
 
