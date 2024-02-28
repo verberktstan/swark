@@ -31,6 +31,8 @@ Then you can use the Swark utility functions:
 
 ## Little tour of Swark utilities
 
+### swark.core
+
 - `key-by`: Returns a map where all items are keyed by the result of calling (f item)
 - `map-vals`: Returns a map where f is applied to all items in the input map.
 - `filter-keys`: Returns a map containing only the map-entries whose key returns logical true when supplied to a predicate fn.
@@ -43,7 +45,25 @@ Then you can use the Swark utility functions:
 - `valid-map?`: Complement of invalid-map?
 - `memoir`: Like memoize, but with flushing. Flush the complete cache, or specific parts.
 
-> Note: these will be moved to their own namespace
+### swark.authom
+
+- `with-token`: Returns a map item with a hashed token in it's metadata.
+- `check`: Checks the password (and optional secret) given a map item.
+- `disclose`: Returns map item with it's token associated with ::authom/token. Useful for serializing the hashed token.
+- `conceal`: Returns the map item with it's token moved to it's metadata. Useful for parsing a persisted record.
+
+### swark.cedric
+
+- `Mem.`: Creates a new instance of the in-memory implementation
+- `Csv.`: Creates a new instance the implementation of the csv backend
+- `make-connection`: Starts an atomic interface connection for a database.
+- `upsert-items`: Creates or updates items in the database
+- `find-by-entity`: Returns one database record found by its entity e.g. `[:user/id 123]`
+- `find-by-primary-key`: Returns database records found by its primary key e.g. `#{:user/id}`
+- `read-items`: Returns all (filtered) records from the database
+- `archive-items`: Marks items as archived
+
+### swark.atomic
 
 - `atomic`: Returns a map with in- and output async channels to provide atomic interactions for side-effecting functionality.
 - `put!`: Puts an instruction on the atomic's input channel, blocks and returns the response.
