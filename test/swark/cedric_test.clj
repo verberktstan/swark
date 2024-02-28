@@ -53,14 +53,12 @@
   ;; Test all implementations in exactly the same way!
   (doseq [make-db [#(Mem. (atom nil))
                    #(Csv. (str "/tmp/testdb-" (swark/unid) ".csv"))]]
-    (let [db        (make-db)
-          db-conn   (swark/with-buffer db)
-          transact! (partial swark/put! db-conn)
-          props     {:primary-key :person/id}
-          the-names (some-names 25)
-          persons   (map (partial assoc nil :person/name) the-names)
-          result    (transact! sut/upsert-items props persons)]
-    ;; result
+    (let [{::sut/keys
+           [transact! close!]} (sut/make-connection (make-db))
+          props                {:primary-key :person/id}
+          the-names            (some-names 25)
+          persons              (map (partial assoc nil :person/name) the-names)
+          result               (transact! sut/upsert-items props persons)]
       (testing "upsert-items"
         (testing "returns the upserted items"
           (is (-> result count (= 25)))
@@ -82,4 +80,4 @@
           (is (= {::sut/archived 5} archived))))
       (testing "returns all the items"
         (is (-> (transact! sut/read-items {}) count #{20})))
-      (swark/close! db-conn))))
+      (close!))))
