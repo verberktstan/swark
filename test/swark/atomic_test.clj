@@ -1,5 +1,5 @@
 (ns swark.atomic-test
-  (:require [clojure.test :as
+  (:require [clojure.test :as t]
             [swark.atomic :as sut]))
 
 (t/deftest atomic
