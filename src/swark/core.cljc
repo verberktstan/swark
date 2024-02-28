@@ -223,6 +223,7 @@
 ;; Async stuff
 
 ;; TODO: Support channel transducers and ex-handler as well
+;; TODO: Move this into its own namespace
 (defn atomic
   {:added "0.1.41"
    :arglist '([x])
