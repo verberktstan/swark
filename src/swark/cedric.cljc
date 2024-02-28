@@ -282,7 +282,7 @@
 (defn make-connection
   "Returns a map with ::transact! and ::close! functions."
   [db]
-  (let [conn (swark/with-buffer db)]
+  (let [conn (swark/atomic db)]
     {::transact! (partial swark/put! conn)
      ::close!    #(swark/close! conn)}))
 

@@ -54,7 +54,7 @@
   (doseq [make-db [#(Mem. (atom nil))
                    #(Csv. (str "/tmp/testdb-" (swark/unid) ".csv"))]]
     (let [db        (make-db)
-          db-conn   (swark/with-buffer db)
+          db-conn   (swark/atomic db)
           transact! (partial swark/put! db-conn)
           props     {:primary-key :person/id}
           the-names (some-names 25)
