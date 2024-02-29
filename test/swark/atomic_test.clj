@@ -3,7 +3,7 @@
             [swark.atomic :as sut]))
 
 (t/deftest atomic
-  (let [atomic    (sut/atomic "Hello" :in-buffer-size 1 :out-buffer-size 1)
+  (let [atomic    (sut/atomic "Hello" :in-buffer-size 2 :out-buffer-size 2)
         transact! (partial sut/put! atomic)]
     (t/is (= "Hello, World!" (transact! str ", " "World!")))
     (t/is (nil? (transact! :not-a-fn ", " "World!")))
