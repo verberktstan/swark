@@ -106,3 +106,19 @@
     #"Spec should be a map!" nil {:id -1}
     #"All vals in spec should implement IFn" {:id "not IFn"} {:id -1} ; Spec
     #"Input should be a map!" {:id nat-int?} false)))
+
+(t/deftest memoir
+  (let [random (sut/memoir rand-int)
+        x      (random 999) ; The result is cached
+        y      (random 9999)]
+    (t/testing "Returns the cached input"
+      (t/is (= x (random 999)))
+      (t/is (= y (random 9999))))
+    (t/testing "Flush a specific subset of the cache"
+      (t/is (= x (random :flush 999))) ; Returns the flushed subset of the cache
+      (t/is (not= x (random 999))) ; Caches a new result
+      (t/is (= (random 999) (random 999))) ; Returns the new cached input
+      (t/is (nil? (random :flush 99)))) ; Returns nil if the cache to flush subset is nonexistent
+    (t/testing "Flush the complete cache"
+      (t/is (nil? (random :flush)))
+      (t/is (not= y (random 9999))))))
