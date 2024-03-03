@@ -1,0 +1,1 @@
+((clojurescript-mode . ((cider-default-cljs-repl . browser))))
