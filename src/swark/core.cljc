@@ -8,21 +8,21 @@
 ;; Regarding collections
 
 (defn key-by
-  {:added "0.1.0"
-   :arglist '([f coll])
-   :doc "Returns a map containing all items in coll, associated by the return
-        value of (f val). When the key is logical false, it is not included in
-        the returned map. Returns a transducer when no collection is provided.
-        `(key-by :id [{:id 12} {:id 34}]) => {12 {:id 12} 34 {:id 34}}`"}
+ {:added "0.1.0"
+  :arglist '([f coll])
+  :doc "Returns a map containing all items in coll, associated by the return
+  value of (f val). When the key is logical false, it is not included in
+  the returned map. Returns a transducer when no collection is provided.
+  `(key-by :id [{:id 12} {:id 34}]) => {12 {:id 12} 34 {:id 34}}`"}
   ([f]
-   (comp
-    (map (juxt f identity))
-    (filter first)))
+    (-> f ifn? assert)
+    (comp (map (juxt f identity)) (filter first)))
   ([f coll]
-   (when-let [s (seq coll)]
-     (-> f ifn? assert)
-     (-> s coll? assert)
-     (into {} (key-by f) s))))
+    (key-by {} f coll))
+  ([a f coll]
+    (-> a associative? assert)
+    (-> coll coll? assert)
+    (into a (key-by f) coll)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Regarding maps
