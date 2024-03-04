@@ -18,11 +18,12 @@
     (-> f ifn? assert)
     (comp (map (juxt f identity)) (filter first)))
   ([f coll]
-    (key-by {} f coll))
+    (when-let [s (seq coll)]
+      (key-by {} f coll)))
   ([a f coll]
     (-> a associative? assert)
-    (-> coll coll? assert)
-    (into a (key-by f) coll)))
+    (cond-> a (seq coll)
+      (into (key-by f) coll))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Regarding maps
