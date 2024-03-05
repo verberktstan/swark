@@ -10,3 +10,4 @@
 /build/
 /src/swark/sandbox.cljc
 /.cljs_node_repl/
+/out/

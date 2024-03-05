@@ -288,6 +288,7 @@
      ::close!    #(atomic/close! conn)}))
 
 (comment
+  ;; TODO: have a look a the doto macro in core...
   (let [connection (-> "/tmp/testdb123.csv" Csv. make-connection)]
     (def transact! (::transact! connection)) ; Define transact! for this connection
     (def close!    (::close!    connection))) ; Define close! for this connection
