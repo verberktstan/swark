@@ -66,7 +66,8 @@
       (t/is (= 4 n))
       (t/is (= retries-left 0)))
     (t/testing "Returns a throwable in case of an error or exception"
-      (t/is (= #{:via :trace :cause} (-> throwable keys set))))))
+      (t/is (= #{:via :trace :cause} (-> throwable keys set)))
+      (t/is (-> throwable :cause #{"Divide by zero"})))))
 
 (t/deftest ->str
   (t/are [result input] (= result (sut/->str input))
