@@ -8,7 +8,7 @@
 ;; Open the browser js console
 ;; You're good to go!
 
-(def METHODS {:get "GET" :post "POST" :put "PUT" :delete "DELETE"})
+(def METHODS {:get "GET" :post! "POST" :put! "PUT" :delete! "DELETE"})
 
 (defn- set-request-header [request k v]
   (cond-> request
@@ -18,6 +18,11 @@
   (if response-type
     (set! (.-reponseType request) response-type)
     request))
+
+;; TODO: This is the naive approach, try transit instead?
+(defn- parse-json [response]
+  (when response
+    (js->clj (.parse js/JSON response))))
 
 (def STATES [:unsent :opened :headers-received :loading :done])
 (defn STATUSES [status]
@@ -34,27 +39,31 @@
   (-> url string? assert)
   (-> on-success fn? assert)
   (let [{:keys [method content-type async? on-error user password]} (apply hash-map args)
-        request (js/XMLHttpRequest.)
-        method (get METHODS method "GET")
-        async? (boolean async?)
-        content-type (get {:edn  "application/clojure"
-                           :clj  "application/clojure"
-                           :json "application/json"
-                           :csv  "text/csv"
-                           :html "text/html"} content-type "text/plain")
+        request       (js/XMLHttpRequest.)
+        method        (get METHODS method "GET")
+        async?        (boolean async?)
         clj-response? (some-> content-type #{:edn :clj})
+        json-response? (some-> content-type #{:json})
+        content-type  (get {:edn  "application/clojure"
+                            :clj  "application/clojure"
+                            :json "application/json"
+                            :csv  "text/csv"
+                            :html "text/html"} content-type "text/plain")
         response-type (when async?
-                        (get {:json "json" :html "document"} content-type "text"))]
+                        (get {:json "json" :html "document"} content-type "text"))
+        parse-response #(cond-> (.-response %)
+                          clj-response? reader/read-string
+                          json-response? parse-json)]
     (when on-success
       (set! (.-onreadystatechange request)
             #(when (and (-> request .-readyState STATES #{:done})
                         (-> request .-status STATUSES #{:success}))
-               (on-success (cond-> (.-response request) clj-response? reader/read-string)))))
+               (on-success (parse-response request)))))
     (when on-error
       (set! (.-onreadystatechange request)
             #(when (and (-> request .-readyState STATES #{:done})
                         (-> request .-status STATUSES #{:client-error :server-error}))
-               (on-error (cond-> (.-response request) clj-response? reader/read-string)))))
+               (on-error (parse-response request)))))
     (if (and user password)
       (.open request method url async? user password)
       (.open request method url async?))
@@ -63,23 +72,29 @@
       (set-response-type response-type)
       (.send))
     (or (and async? request)
-        (cond-> (.-response request) clj-response? reader/read-string))))
+        (parse-response request))))
 
 (comment
   (def atm (atom nil))
-  @atm 
+  @atm
 
   (request
-   "/README.md"
+   "/dev-resources/test.txt"
    #(swap! atm assoc :status :success :response %)
    :method       :get
-   :content-type :html
-   :async?       true
+   :content-type :text
+   ;; :async?       true
    :on-error      #(swap! atm assoc :status :error :response %))
-
   (request
    "/deps.edn"
    #(swap! atm assoc :status :success :response %)
    :method       :get
-   :content-type :text
-   :async?       false))
+   :content-type :edn
+   :async?       false)
+
+  (request
+   "/dev-resources/test.json"
+   #(swap! atm assoc :status :success :response %)
+   :method       :get
+   :content-type :json
+   :async?       true))
