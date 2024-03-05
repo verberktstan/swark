@@ -89,18 +89,20 @@
 (defn with-retries
   {:added "0.1.41"
    :arglist '([n f & args])
-   :doc "Returns the result of (apply f args) after running it n times. When
+   :doc "Returns the result of (apply f args) after retrying up to n times. When
    something is thrown on the last try, returns the throwable map."}
   [n f & args]
   (-> n pos-int? assert)
-  (loop [n n, result nil]
-    (if (zero? n)
-      (or (jab Throwable->map result) result) ; Try to coerce to map if something is Thrown
-      (recur
-       (dec n)
-       (try
-         (apply f args)
-         (catch Throwable t t))))))
+  (loop [retries-left n]
+    (let [result (if (zero? retries-left)
+                   (try
+                     (apply f args)
+                     (catch #?(:cljs :default :clj Throwable) t (Throwable->map t)))
+                   (apply jab f args))]
+      (cond
+        (zero? retries-left) {:throwable result :retries-left retries-left :n n}
+        result {:result result :retries-left retries-left :n n}
+        :else (recur (dec retries-left))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Regarding strings
@@ -110,13 +112,13 @@
   [input]
   (letfn [(non-blank [s] (when-not (str/blank? s) s))]
     (or
-      (when (keyword? input)
-        (->> ((juxt namespace name) input)
-             (keep identity)
-             (map ->str)
-             (str/join "/")))
-      (let [stringify (if (jab name input) name str)]
-        (some-> input stringify str/trim non-blank)))))
+     (when (keyword? input)
+       (->> ((juxt namespace name) input)
+            (keep identity)
+            (map ->str)
+            (str/join "/")))
+     (let [stringify (if (jab name input) name str)]
+       (some-> input stringify str/trim non-blank)))))
 
 (defn unid
   "Returns a unique string that does is not yet contained in the existing set."

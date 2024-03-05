@@ -55,6 +55,19 @@
       {::test "Testdata"}     (namespace ::this)
       {} "unknown")))
 
+(t/deftest with-retries
+  (t/testing "Returns a map with the :result, :n input and :retries-left"
+    (t/is (= {:result       (inc 1)
+              :n            3
+              :retries-left 3}
+             (sut/with-retries 3 inc 1))))
+  (let [{:keys [throwable n retries-left]} (sut/with-retries 4 / 1 0)]
+    (t/testing "Returns the n input and n retries left"
+      (t/is (= 4 n))
+      (t/is (= retries-left 0)))
+    (t/testing "Returns a throwable in case of an error or exception"
+      (t/is (= #{:via :trace :cause} (-> throwable keys set))))))
+
 (t/deftest ->str
   (t/are [result input] (= result (sut/->str input))
     "Hello, Swark!" "Hello, Swark!"
