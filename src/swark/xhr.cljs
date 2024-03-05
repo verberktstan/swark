@@ -10,10 +10,6 @@
 
 (def METHODS {:get "GET" :post "POST" :put "PUT" :delete "DELETE"})
 
-(defn- set-on-load-start [request handler]
-  (cond-> request
-    handler (.addEventListener "loadstart" handler)))
-
 (defn- set-request-header [request k v]
   (cond-> request
     (and k v) (.setRequestHeader k v)))
@@ -37,7 +33,7 @@
   [url on-success & args]
   (-> url string? assert)
   (-> on-success fn? assert)
-  (let [{:keys [method content-type async? on-start on-error user password]} (apply hash-map args)
+  (let [{:keys [method content-type async? on-error user password]} (apply hash-map args)
         request (js/XMLHttpRequest.)
         method (get METHODS method "GET")
         async? (boolean async?)
@@ -63,7 +59,6 @@
       (.open request method url async? user password)
       (.open request method url async?))
     (doto request
-      (set-on-load-start on-start)
       (set-request-header "Content-Type" content-type)
       (set-response-type response-type)
       (.send))
@@ -80,13 +75,11 @@
    :method       :get
    :content-type :html
    :async?       true
-   :on-start      #(swap! atm assoc :status :pending)
    :on-error      #(swap! atm assoc :status :error :response %))
 
   (request
-   "/tests.edn"
+   "/deps.edn"
    #(swap! atm assoc :status :success :response %)
    :method       :get
    :content-type :text
-   :async?       true
-   :on-start      #(swap! atm assoc :status :pending)))
+   :async?       false))
