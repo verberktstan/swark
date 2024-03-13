@@ -47,6 +47,8 @@ Then you can use the Swark utility functions:
 
 ### swark.authom
 
+Atomic authorization. Generate a token for a map, in conjunction with a password and optional secret. And of course check if it matches.
+
 - `with-token`: Returns a map item with a hashed token in it's metadata.
 - `check`: Checks the password (and optional secret) given a map item.
 - `disclose`: Returns map item with it's token associated with ::authom/token. Useful for serializing the hashed token.
