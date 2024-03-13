@@ -34,7 +34,7 @@ Then you can use the Swark utility functions:
 ### swark.core
 
 - `key-by`: Returns a map where all items are keyed by the result of calling (f item)
-- `map-vals`: Returns a map where f is applied to all items in the input map.
+- `map-vals`: Returns a map where f is applied to all the input map's values.
 - `filter-keys`: Returns a map containing only the map-entries whose key returns logical true when supplied to a predicate fn.
 - `select-namespaced`: Returns a map containing only those map-entries whose key's namespace is equal to the supplied namespace.
 - `jab`: Try and fail silently, returning nil when any kind of error or exception is thrown.
