@@ -124,8 +124,8 @@
 (defn unid
   ([] (-> (random-uuid) str))
   ([existing?] (unid nil existing?))
-  ([{:keys [length re] :or {length 1 re #"."}} existing?] 
-    (loop [result nil coll nil]
+  ([{:keys [length re] :or {length 1 re #".*"}} existing?] 
+    (loop [result nil coll (-> (unid) seq vec)]
       (if (and result (-> result count (>= length)) (-> result existing? not))
         result
         (recur
