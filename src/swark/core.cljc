@@ -121,9 +121,19 @@
        (some-> input stringify str/trim non-blank)))))
 
 
-#_(defn unid ([] (-> (random-uuid) str seq vec)) ([existing?] (unid nil existing?)) ([{:keys [length re] :or {length 1 re #"."}} existing?] (loop [result nil coll nil] (if (and result (-> result count (>= length)) (-> result existing? not)) result (recur (str result (peek coll)) (cond-> (pop coll) (-> coll count #{0 1}) (into (filter (comp (partial re-find re) str) (unid)))))))))
-
 (defn unid
+  ([] (-> (random-uuid) str))
+  ([existing?] (unid nil existing?))
+  ([{:keys [length re] :or {length 1 re #"."}} existing?] 
+    (loop [result nil coll nil]
+      (if (and result (-> result count (>= length)) (-> result existing? not))
+        result
+        (recur
+          (str result (peek coll))
+          (cond-> (pop coll)
+            (-> coll count #{0 1}) (into (filter (comp (partial re-find re) str) (-> (unid) seq vec)))))))))
+
+#_(defn unid
   "Returns a unique string that does is not yet contained in the existing set."
   ([] (-> (random-uuid) str))
   ([existing]
