@@ -86,9 +86,9 @@
   (t/is (->> #{"xyzab"} (sut/unid {:length 5}) count (>= 5)))
   (t/is (-> (reduce (fn [x _] (conj x (sut/unid x))) #{} (range 999)) count #{999}))
   (t/is (-> (reduce (fn [x _] (conj x (sut/unid {:length 4} x))) #{} (range 999)) count #{999}))
-  (let [three-digits (sut/unid {:length 3 :filter-regex #"\d|^\-"} #{})
-        four-letters (sut/unid {:length 4 :filter-regex #"\D|^\-"} #{})
-        five-chars   (sut/unid {length 5} #{})]
+  (let [three-digits (sut/unid {:length 3 :re #"[\d^\-]"} #{})
+        four-letters (sut/unid {:length 4 :reg #"[\D^\-]"} #{})
+        five-chars   (sut/unid {:length 5} #{})]
     (t/is (-> three-digits count #{3}))
     (t/is (->> three-digits seq (every? (comp number? edn/read-string str))))
     (t/is (-> four-letters count #{4}))
