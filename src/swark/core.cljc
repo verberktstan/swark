@@ -85,24 +85,16 @@
     (apply f args)
     #?(:cljs (catch :default _ nil) :clj (catch Throwable _ nil))))
 
-;; TODO: Add tests
+;; TODO: Add tests & fn metadata
 (defn with-retries
-  {:added "0.1.41"
-   :arglist '([n f & args])
-   :doc "Returns the result of (apply f args) after retrying up to n times. When
-   something is thrown on the last try, returns the throwable map."}
   [n f & args]
-  (-> n pos-int? assert)
-  (loop [retries-left n]
-    (let [result (if (zero? retries-left)
-                   (try
-                     (apply f args)
-                     (catch #?(:cljs :default :clj Throwable) t (Throwable->map t)))
-                   (apply jab f args))]
-      (cond
-        (zero? retries-left) {:throwable result :retries-left retries-left :n n}
-        result {:result result :retries-left retries-left :n n}
-        :else (recur (dec retries-left))))))
+  (letfn [(meta-n [x n] (jab vary-meta x #(assoc % ::n (inc n))))]
+    (reduce
+      (fn retry [_ n]
+        (when-let [result (apply jab f args)]
+          (reduced (or (meta-n result n) result))))
+      nil
+      (range n))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Regarding strings
