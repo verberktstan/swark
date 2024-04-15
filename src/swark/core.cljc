@@ -85,15 +85,16 @@
     (apply f args)
     #?(:cljs (catch :default _ nil) :clj (catch Throwable _ nil))))
 
-;; TODO: Add tests, vary-meta & fn metadata
+;; TODO: Add tests & fn metadata
 (defn with-retries
   [n f & args]
-  (reduce
-    (fn retry [_ _]
-      (when-let [result (apply jab f args)]
-        (reduced result)))
-    nil
-    (range n)))
+  (letfn [(meta-n [x n] (jab vary-meta result #(assoc % ::n (inc n))))]
+    (reduce
+      (fn retry [_ n]
+        (when-let [result (apply jab f args)]
+          (reduced (or (meta-n result n) result))))
+      nil
+      (range n))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Regarding strings
