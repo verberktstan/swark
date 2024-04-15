@@ -88,7 +88,7 @@
 ;; TODO: Add tests & fn metadata
 (defn with-retries
   [n f & args]
-  (letfn [(meta-n [x n] (jab vary-meta result #(assoc % ::n (inc n))))]
+  (letfn [(meta-n [x n] (jab vary-meta x #(assoc % ::n (inc n))))]
     (reduce
       (fn retry [_ n]
         (when-let [result (apply jab f args)]
