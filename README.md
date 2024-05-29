@@ -137,6 +137,12 @@ Create an uberjar with `clj -X:uberjar :jar swark-0.1.5.jar`
 
 Install Swark locally with `clj -X:install`
 
+### Deploy to Clojars
+
+```
+env CLOJARS_USERNAME=username CLOJARS_PASSWORD=clojars-token clj -X:deploy
+```
+
 ## License
 
 Swark by Stan Verberkt is marked with CC0 1.0 Universal 
