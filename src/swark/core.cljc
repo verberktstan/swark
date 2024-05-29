@@ -126,10 +126,11 @@
   ([existing]
    (unid nil existing))
   ([{:keys [min-length filter-regex no-dashes?] :or {min-length 1}} existing]
-   (-> existing set? assert)
+   ;; (-> existing set? assert)
+   (assert (or (map? existing) (set? existing)))
    (reduce
     (fn [s char]
-      (if (and s (>= (count s) min-length) (-> s existing not) (-> s reverse first #{"-"} not))
+      (if (and s (>= (count s) min-length) (->> s (contains? existing) not) (-> s reverse first #{"-"} not))
         (reduced s)
         (str s char)))
     nil
