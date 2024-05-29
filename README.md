@@ -15,7 +15,7 @@ Most functionality *should* work in both Clojure and Clojurescript.
 
 Add this dependency to the :deps map in deps.edn:
 
-```org.clojars.stanv/swark {:mvn/version "0.1.41"}```
+```org.clojars.stanv/swark {:mvn/version "0.1.42"}```
 
 Require swark.core in your ns form:
 
@@ -131,7 +131,7 @@ Or create a repl from your editor, e.g. from emacs; `cider-jack-in-clj`
 
 ### Jar creation
 
-Create an uberjar with `clj -X:uberjar :jar swark-0.1.41.jar`
+Create an uberjar with `clj -X:uberjar :jar swark-0.1.42.jar`
 
 ### Local installation
 
