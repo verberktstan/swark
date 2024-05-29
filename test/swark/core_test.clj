@@ -83,9 +83,13 @@
 (t/deftest unid
   (t/is (string? (sut/unid)))
   (t/is (-> #{"x"} sut/unid count #{1}))
+  (t/is (-> {"x" :val-of-x} sut/unid count #{1})) ;; Works with maps as well
   (t/is (->> #{"xyzab"} (sut/unid {:min-length 5}) count (>= 5)))
+  (t/is (->> {"xyzab" :val-of-xyzab} (sut/unid {:min-length 5}) count (>= 5)))
   (t/is (-> (reduce (fn [x _] (conj x (sut/unid x))) #{} (range 999)) count #{999}))
+  (t/is (-> (reduce (fn [x _] (assoc x (sut/unid x) :another-val)) {} (range 999)) count #{999}))
   (t/is (-> (reduce (fn [x _] (conj x (sut/unid {:min-length 4} x))) #{} (range 999)) count #{999}))
+  (t/is (-> (reduce (fn [x _] (assoc x (sut/unid {:min-length 4} x) :another-val)) {} (range 999)) count #{999}))
   (let [three-digits (sut/unid {:min-length 3 :no-dashes? true :filter-regex #"\d"} #{})
         four-letters (sut/unid {:min-length 4 :no-dashes? true :filter-regex #"\D"} #{})
         five-chars   (sut/unid {:min-length 5} #{})]
