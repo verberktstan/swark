@@ -75,7 +75,7 @@
 ;; TODO: Add tests
 (defn optional-args
   "Returns a function that selects and renames keys, and adds defaults for sequentialargs (as destructured by &). Supply a props map containing permitted input keys as keys, and a map with :default & :rename as val.
-`((optional-args {:name {:rename :person/name :default "Unnamed person"} :from {:rename :person/from :default "Nowhere"}}) {:name "Me"}) => #:person{:name "Me" :from "Nowhere"}`"
+`((optional-args {:name {:rename :person/name :default \"Unnamed person\"} :from {:rename :person/from :default \"Nowhere\"}}) {:name \"Me\"}) => #:person{:name \"Me\" :from \"Nowhere\"}`"
   [props]
   (let [renames (map-vals :rename props)
         defaults (map-vals :default props)]
