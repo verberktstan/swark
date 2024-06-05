@@ -42,6 +42,16 @@
      (-> item map? assert)
      (into {} (map-vals f) item))))
 
+(defn map-keys
+  "WIP"
+  ([f]
+   (map (juxt (comp f key) val)))
+  ([f item]
+   (when item
+     (-> f ifn? assert)
+     (-> item map? assert)
+     (into {} (map-keys f) item))))
+
 (defn filter-keys
   {:added "0.1.3"
    :arglists '([map pred])
