@@ -38,6 +38,17 @@
     (t/is (thrown? AssertionError (sut/map-vals nil m)))
     (t/is (nil? (sut/map-vals inc nil)))))
 
+t/deftest map-keys
+  (let [m {:a 1 :b 2}}]
+    (t/testing "Returns the map with f applied to all it's keys"
+      (t/is (= {:test/a 1, :test/b 2} (sut/map-keys (partial keyword "test") m)))
+      (t/is (= {:test/b 1, :c 2}
+               (sut/map-keys
+                {:a :test/b :b :c} m))))
+
+    (t/is (thrown? AssertionError (sut/map-keyss nil m)))
+    (t/is (nil? (sut/map-keys inc nil)))))
+
 (t/deftest filter-keys
   (let [map {:user-id 1 :user/name "Username" ::test "Testdata"}
         ns-str (namespace ::this)]
