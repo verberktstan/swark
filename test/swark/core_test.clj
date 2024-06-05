@@ -39,7 +39,7 @@
     (t/is (nil? (sut/map-vals inc nil)))))
 
 (t/deftest map-keys
-  (let [m {:a 1 :b 2}}]
+  (let [m {:a 1 :b 2}]
     (t/testing "Returns the map with f applied to all it's keys"
       (t/is (= {:test/a 1, :test/b 2} (sut/map-keys (partial keyword "test") m)))
       (t/is (= {:test/b 1, :c 2}
