@@ -97,7 +97,10 @@
     (let [result (if (zero? retries-left)
                    (try
                      (apply f args)
-                     (catch #?(:cljs :default :clj Throwable) t (Throwable->map t)))
+                     (catch
+                         #?(:cljs :default :clj Throwable)
+                         t
+                       #?(:cljs t :clj (Throwable->map t))))
                    (apply jab f args))]
       (cond
         (zero? retries-left) {:throwable result :retries-left retries-left :n n}
