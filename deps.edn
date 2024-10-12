@@ -10,6 +10,18 @@
    :main-opts  ["-m" "nrepl.cmdline"
                 "--middleware" "[cider.nrepl/cider-middleware]"
                 "--interactive"]}
+
+  ;; clojure -M:repl/cljs
+  :repl/cljs
+  {:extra-deps {org.clojure/clojurescript {:mvn/version "1.10.773"}
+                nrepl/nrepl               {:mvn/version "1.0.0"}
+                cider/cider-nrepl         {:mvn/version "0.30.0"}
+                cider/piggieback          {:mvn/version "0.5.3"}}
+   :main-opts  ["-m" "nrepl.cmdline"
+                "--interactive"
+                "--middleware" "[cider.nrepl/cider-middleware,cider.piggieback/wrap-cljs-repl]"]}
+
+
   ;; kaocha - comprehensive test runner for Clojure/Script
   ;; tests.edn should be created for each project
   ;; https://github.com/lambdaisland/kaocha
