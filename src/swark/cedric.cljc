@@ -301,3 +301,25 @@
   (transact! archive-items {:primary-key :user/id} [{:user/id "4"}])
   ;; Close the connection via the close! function
   (close!))
+
+(comment
+  ;; JDBC
+  (require '[next.jdbc :as jdbc])
+  (let [db {:dbtype "sqlite" :dbname "example"}
+        ds (jdbc/get-datasource db)
+        tx (utc-now)
+        ea :user/id
+        ev "c"
+        a :user/name
+        v "Arnold"]
+
+    ;; Step one. Create table for storing EAV lines.
+    #_(jdbc/execute! ds ["CREATE TABLE lines (id int auto_increment primary key, tx timestamp, entity_attribute varchar(32), entity_value varchar(32), attribute varchar(32), value varchar(255))"])
+
+    ;; Step two. How to insert a row
+    #_(jdbc/execute! db ["insert into lines(tx, entity_attribute, entity_value, attribute, value) values (?, ?, ?, ?, ?)" tx ea ev a v])
+
+    ;; Step Three. Reading.
+    (jdbc/execute! db ["select * from lines"])
+    ))
+
