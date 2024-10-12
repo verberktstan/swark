@@ -39,18 +39,18 @@
   (-> url string? assert)
   (-> on-success fn? assert)
   (let [{:keys [method content-type async? on-error user password]} (apply hash-map args)
-        request       (js/XMLHttpRequest.)
-        method        (get METHODS method "GET")
-        async?        (boolean async?)
-        clj-response? (some-> content-type #{:edn :clj})
+        request        (js/XMLHttpRequest.)
+        method         (get METHODS method "GET")
+        async?         (boolean async?)
+        clj-response?  (some-> content-type #{:edn :clj})
         json-response? (some-> content-type #{:json})
-        content-type  (get {:edn  "application/clojure"
-                            :clj  "application/clojure"
-                            :json "application/json"
-                            :csv  "text/csv"
-                            :html "text/html"} content-type "text/plain")
-        response-type (when async?
-                        (get {:json "json" :html "document"} content-type "text"))
+        content-type   (get {:edn  "application/clojure"
+                             :clj  "application/clojure"
+                             :json "application/json"
+                             :csv  "text/csv"
+                             :html "text/html"} content-type "text/plain")
+        response-type  (when async?
+                         (get {:json "json" :html "document"} content-type "text"))
         parse-response #(cond-> (.-response %)
                           clj-response? reader/read-string
                           json-response? parse-json)]
@@ -72,6 +72,7 @@
       (set-response-type response-type)
       (.send))
     (or (and async? request)
+        ;; TODO: Respect readyState and status here..
         (parse-response request))))
 
 (comment
@@ -84,17 +85,20 @@
    :method       :get
    :content-type :text
    ;; :async?       true
-   :on-error      #(swap! atm assoc :status :error :response %))
+   :on-error      #(swap! atm assoc :status :error :response %)) 
+
   (request
    "/deps.edn"
    #(swap! atm assoc :status :success :response %)
    :method       :get
    :content-type :edn
-   :async?       false)
+   :async?       false) 
 
   (request
    "/dev-resources/test.json"
    #(swap! atm assoc :status :success :response %)
+   ;; NOTE: You will probably want to fire an event here to save the status and response in your appdb.
+   #_(re-frame.core/dispatch [:save-to-appdb {:status :success :response %}])
    :method       :get
    :content-type :json
-   :async?       true))
+   :async?       (comment true)))
