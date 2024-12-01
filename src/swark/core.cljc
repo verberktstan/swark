@@ -107,6 +107,17 @@
         result {:result result :retries-left retries-left :n n}
         :else (recur (dec retries-left))))))
 
+(letfn [(chain-effect [f effect]
+          (comp f #(doto % effect)))]
+  (defn chain [f & effects]
+    (-> f ifn? assert)
+    (or
+      (some->> effects
+        (filter fn?)
+        seq
+        (reduce chain-effect f))
+      f)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Regarding strings
 
