@@ -86,11 +86,10 @@
     (apply f args)
     #?(:cljs (catch :default _ nil) :clj (catch Throwable _ nil))))
 
-;; TODO: Add tests
 (defn with-retries
-  {:added "0.1.41"
+  {:added   "0.1.41"
    :arglist '([n f & args])
-   :doc "Returns the result of (apply f args) after retrying up to n times. When
+   :doc     "Returns the result of (apply f args) after retrying up to n times. When
    something is thrown on the last try, returns the throwable map."}
   [n f & args]
   (-> n pos-int? assert)
@@ -99,20 +98,21 @@
                    (try
                      (apply f args)
                      (catch
-                         #?(:cljs :default :clj Throwable)
-                         t
+                      #?(:cljs :default :clj Throwable)
+                      t
                        #?(:cljs t :clj (Throwable->map t))))
                    (apply jab f args))]
       (cond
         (zero? retries-left) {:throwable result :retries-left retries-left :n n}
-        result {:result result :retries-left retries-left :n n}
-        :else (recur (dec retries-left))))))
+        result               {:result result :retries-left retries-left :n n}
+        :else                (recur (dec retries-left))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Regarding strings
 
 (defn ->str
-  "Returns `input` coerced to a trimmed string. Returns nil instead of a blank string. Returns 'namespace/name' for a namespaced keyword."
+  "Returns `input` coerced to a trimmed string. Returns nil instead of a blank
+  string. Returns 'namespace/name' for a namespaced keyword."
   [input]
   (letfn [(non-blank [s] (when-not (str/blank? s) s))]
     (or
@@ -130,11 +130,13 @@
   ([existing]
    (unid nil existing))
   ([{:keys [min-length filter-regex no-dashes?] :or {min-length 1}} existing]
-   ;; (-> existing set? assert)
    (assert (or (map? existing) (set? existing)))
    (reduce
     (fn [s char]
-      (if (and s (>= (count s) min-length) (->> s (contains? existing) not) (-> s reverse first #{"-"} not))
+      (if (and s
+               (>= (count s) min-length)
+               (->> s (contains? existing) not)
+               (-> s reverse first #{"-"} not))
         (reduced s)
         (str s char)))
     nil

@@ -53,7 +53,7 @@
       {:user-id 1}            (complement namespace)
       {:user/name "Username"} (comp #{"user"} namespace)
       {::test "Testdata"}     (comp #{ns-str} namespace)
-      {}                     (comp #{"unknown"} namespace))))
+      {}                      (comp #{"unknown"} namespace))))
 
 (deftest select-namespaced
   (let [map {:user-id 1 :user/name "Username" ::test "Testdata"}]
@@ -61,14 +61,14 @@
       {:user-id 1}            nil
       {:user/name "Username"} "user"
       {::test "Testdata"}     (namespace ::this)
-      {} "unknown")))
+      {}                      "unknown")))
 
 (deftest with-retries
   (testing "Returns a map with the :result, :n input and :retries-left"
     (is (= {:result       (inc 1)
-              :n            3
-              :retries-left 3}
-             (sut/with-retries 3 inc 1))))
+            :n            3
+            :retries-left 3}
+           (sut/with-retries 3 inc 1))))
   (let [{:keys [throwable n retries-left]} (sut/with-retries 4 / 1 0)]
     (testing "Returns the n input and n retries left"
       (is (= 4 n))
