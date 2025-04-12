@@ -35,10 +35,10 @@
         when no collection is provided.
         `(map-vals count {:a [:b c] :d [:e]}) => {:a 2 :d 1}`"}
   ([f]
+   (-> f ifn? assert)
    (map (juxt key (comp f val))))
   ([f item]
    (when item
-     (-> f ifn? assert)
      (-> item map? assert)
      (into {} (map-vals f) item))))
 
@@ -208,5 +208,3 @@
               (-> state
                   (swap! assoc args (apply f args))
                   (get args))))))))
-
-
