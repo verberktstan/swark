@@ -32,7 +32,11 @@
     (is (nil? (sut/key-by :id nil)))))
 
 (deftest map-vals
-  (let [m {:a [1 1] :b [1 2] :c [2 3 5] :d [3 5 8 13]} #_{:a 1 :b 2 :c 3}]
+  (let [m {:a [1 1] :b [1 2] :c [2 3 5] :d [3 5 8 13]}]
+    (testing "Returns a transducer that maps f across values"
+      (let [xform (sut/map-vals count)]
+        (is (fn? xform))
+        (is (->> m (into {} xform) vals frequencies (= {2 2, 3 1, 4 1})))))
     (testing "Returns the map with f applied to all it's vals"
       (is (= {:a 2, :b 2, :c 3, :d 4} (sut/map-vals count m)))
       (is (= {:a 2, :b 3, :c 10, :d 29}
