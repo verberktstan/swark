@@ -6,6 +6,10 @@
 (t/deftest key-by
   (let [records        [{:id 0 :name "ab"} {:id 1 :name "cd"}]
         number-vectors [[1 1] [1 2] [2 3 5] [3 5 8 13]]]
+    (t/testing "Returns a transducer that keys by f"
+      (let [xform (sut/key-by :id)]
+        (t/is (fn? xform))
+        (t/is (->> records (into {} xform) keys (= [0 1])))))
     (t/testing "Returns a map with items keyed-by f"
       (t/is
        (= {0 {:id 0, :name "ab"}, 1 {:id 1, :name "cd"}}
