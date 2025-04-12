@@ -44,22 +44,23 @@
 
 (defn filter-keys
   {:added "0.1.3"
-   :arglists '([map pred])
+   :arglists '([m pred])
    :doc "Returns a map containing only those entries in map whose key return
    logical true on evaluation of (pred key).
    `(filter-keys {:a 1 \"b\" 2} keyword?) => {:a 1}`"}
-  [map pred]
-  (cond->> map
+  [m pred]
+  (-> m map? assert)
+  (cond->> m
     pred    (filter (comp pred key))
-    map     seq
+    m       seq
     :always (into {})))
 
 (declare jab)
 
 (defn select-namespaced
-  {:added "0.1.3"
+  {:added   "0.1.3"
    :arglist '([map] [map ns])
-   :doc "Returns a map containing only those entries in map whose keys'
+   :doc     "Returns a map containing only those entries in map whose keys'
    namespace match ns. When ns is nil, returns a map containing only
    non-namespaced keys.
    `(select-namespaced {::test 1 :test 2} (namespace ::this)) => {::test 1}`"}
@@ -67,7 +68,7 @@
    (select-namespaced map nil))
   ([map ns]
    (-> map map? assert)
-   (let [ns (jab name ns)
+   (let [ns        (jab name ns)
          predicate (if ns #{ns} nil?)]
      (filter-keys map (comp predicate namespace)))))
 
