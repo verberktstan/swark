@@ -8,22 +8,22 @@
 ;; Regarding collections
 
 (defn key-by
- {:added "0.1.0"
-  :arglist '([f coll])
-  :doc "Returns a map containing all items in coll, associated by the return
+  {:added "0.1.0"
+   :arglist '([f coll])
+   :doc "Returns a map containing all items in coll, associated by the return
   value of (f val). When the key is logical false, it is not included in
   the returned map. Returns a transducer when no collection is provided.
   `(key-by :id [{:id 12} {:id 34}]) => {12 {:id 12} 34 {:id 34}}`"}
   ([f]
-    (-> f ifn? assert)
-    (comp (map (juxt f identity)) (filter first)))
+   (-> f ifn? assert)
+   (comp (map (juxt f identity)) (filter first)))
   ([f coll]
-    (when-let [s (seq coll)]
-      (key-by {} f coll)))
+   (when (seq coll)
+     (key-by {} f coll)))
   ([a f coll]
-    (-> a associative? assert)
-    (cond-> a (seq coll)
-      (into (key-by f) coll))))
+   (-> a associative? assert)
+   (cond-> a (seq coll)
+           (into (key-by f) coll))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Regarding maps
@@ -35,31 +35,32 @@
         when no collection is provided.
         `(map-vals count {:a [:b c] :d [:e]}) => {:a 2 :d 1}`"}
   ([f]
+   (-> f ifn? assert)
    (map (juxt key (comp f val))))
   ([f item]
    (when item
-     (-> f ifn? assert)
      (-> item map? assert)
      (into {} (map-vals f) item))))
 
 (defn filter-keys
   {:added "0.1.3"
-   :arglists '([map pred])
+   :arglists '([m pred])
    :doc "Returns a map containing only those entries in map whose key return
    logical true on evaluation of (pred key).
    `(filter-keys {:a 1 \"b\" 2} keyword?) => {:a 1}`"}
-  [map pred]
-  (cond->> map
+  [m pred]
+  (-> m map? assert)
+  (cond->> m
     pred    (filter (comp pred key))
-    map     seq
+    m       seq
     :always (into {})))
 
 (declare jab)
 
 (defn select-namespaced
-  {:added "0.1.3"
+  {:added   "0.1.3"
    :arglist '([map] [map ns])
-   :doc "Returns a map containing only those entries in map whose keys'
+   :doc     "Returns a map containing only those entries in map whose keys'
    namespace match ns. When ns is nil, returns a map containing only
    non-namespaced keys.
    `(select-namespaced {::test 1 :test 2} (namespace ::this)) => {::test 1}`"}
@@ -67,7 +68,7 @@
    (select-namespaced map nil))
   ([map ns]
    (-> map map? assert)
-   (let [ns (jab name ns)
+   (let [ns        (jab name ns)
          predicate (if ns #{ns} nil?)]
      (filter-keys map (comp predicate namespace)))))
 
@@ -85,11 +86,10 @@
     (apply f args)
     #?(:cljs (catch :default _ nil) :clj (catch Throwable _ nil))))
 
-;; TODO: Add tests
 (defn with-retries
-  {:added "0.1.41"
+  {:added   "0.1.41"
    :arglist '([n f & args])
-   :doc "Returns the result of (apply f args) after retrying up to n times. When
+   :doc     "Returns the result of (apply f args) after retrying up to n times. When
    something is thrown on the last try, returns the throwable map."}
   [n f & args]
   (-> n pos-int? assert)
@@ -98,20 +98,21 @@
                    (try
                      (apply f args)
                      (catch
-                         #?(:cljs :default :clj Throwable)
-                         t
+                      #?(:cljs :default :clj Throwable)
+                      t
                        #?(:cljs t :clj (Throwable->map t))))
                    (apply jab f args))]
       (cond
         (zero? retries-left) {:throwable result :retries-left retries-left :n n}
-        result {:result result :retries-left retries-left :n n}
-        :else (recur (dec retries-left))))))
+        result               {:result result :retries-left retries-left :n n}
+        :else                (recur (dec retries-left))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Regarding strings
 
 (defn ->str
-  "Returns `input` coerced to a trimmed string. Returns nil instead of a blank string. Returns 'namespace/name' for a namespaced keyword."
+  "Returns `input` coerced to a trimmed string. Returns nil instead of a blank
+  string. Returns 'namespace/name' for a namespaced keyword."
   [input]
   (letfn [(non-blank [s] (when-not (str/blank? s) s))]
     (or
@@ -129,11 +130,13 @@
   ([existing]
    (unid nil existing))
   ([{:keys [min-length filter-regex no-dashes?] :or {min-length 1}} existing]
-   ;; (-> existing set? assert)
    (assert (or (map? existing) (set? existing)))
    (reduce
     (fn [s char]
-      (if (and s (>= (count s) min-length) (->> s (contains? existing) not) (-> s reverse first #{"-"} not))
+      (if (and s
+               (>= (count s) min-length)
+               (->> s (contains? existing) not)
+               (-> s reverse first #{"-"} not))
         (reduced s)
         (str s char)))
     nil
@@ -208,5 +211,3 @@
               (-> state
                   (swap! assoc args (apply f args))
                   (get args))))))))
-
-
