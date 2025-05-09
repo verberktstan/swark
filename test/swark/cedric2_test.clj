@@ -12,6 +12,8 @@
     :keywordize-attributes? true}
    rows1))
 
+(def ^:private records1 (#'sut/->set record1))
+
 (deftest row->entry
   (let [->entry (partial #'sut/row->entry (first rows1))]
     (testing "row->entry returns the row as a map with {[ea ev] {a v}}"
@@ -24,14 +26,26 @@
 
 (deftest merge-rows
   (let [merge-rows* #(#'sut/merge-rows % rows1)]
-    (testing "merge-rows returns a map of merged records keyed by their entity"
+    (testing "returns a map of merged records keyed by their entity"
       (is (= {["id" "1"] {"initials" "A.B." "name" "Arthur Bent"}}
              (merge-rows* nil)))
       (is (= {[:id "1"] {:initials "A.B." :name "Arthur Bent"}}
              (merge-rows* {:keywordize-attributes? true})))
-      (is (= {[:id 1] {:initials "A.B." :name "Arthur Bent"}} record1)))))
+      (is (= {[:id 1] {:initials "A.B." :name "Arthur Bent"}} record1)))
+    (testing "returns only records with matching entity when requested"
+      (is (= {[:id 1] {:initials "A.B." :name "Arthur Bent"}}
+             (#'sut/merge-rows
+              {:ev-parser              edn/read-string
+               :keywordize-attributes? true
+               :entities               records1}
+              rows1)))
+      (is (nil? (#'sut/merge-rows
+                  {:ev-parser              edn/read-string
+                   :keywordize-attributes? true
+                   :entities               #{{:id 2}}}
+                  rows1))))))
 
 (deftest ->set
   (testing "->set returns a set with record merged with their entity"
     (is (= #{{:id 1 :initials "A.B." :name "Arthur Bent"}}
-           (#'sut/->set record1)))))
+           records1))))

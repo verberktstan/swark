@@ -25,6 +25,18 @@
   [record-map]
   (some->> record-map seq (map merge-entity) set))
 
+(defn- some-matching-entities
+  "Returns a predicate function that chesk if `entry-map` matches one of the
+  map-entries in the supplied `records`."
+  [records]
+  (if-let [all-entities (->> records (mapcat seq) seq)]
+    (fn  matching-entity* [entry-map]
+      (when-let [entity (some-> entry-map keys first)]
+        (some (partial = entity) all-entities)))
+    (constantly true)))
+
+(seq (mapcat seq [{:test "ikel"}]))
+
 (defn- merge-rows
   "Eagerly transform rows of eav data into a map of records keyed by entity.
   `props` may contain :keywordize-attributes? & :ev-parser.
@@ -33,9 +45,11 @@
   :ev-parser is used to parse the entity-value. For example
   clojure.edn/read-string would turn `[:id \"1\"] => [:id 1]`"
   ([rows] (merge-rows nil rows))
-  ([props rows]
+  ([{:keys [entities] :as props} rows]
    (let [props-list (mapcat identity props)]
      (transduce
-      (map #(apply row->entry % props-list))
+      (comp
+        (map #(apply row->entry % props-list))
+        (filter (some-matching-entities entities)))
       (partial merge-with merge)
       rows))))
