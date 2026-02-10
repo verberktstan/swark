@@ -1,5 +1,7 @@
 (ns swark.core
-  (:require [clojure.string :as str]))
+  (:require [clj-fuzzy.metrics :refer [levenshtein]]
+            [clojure.set :as set]
+            [clojure.string :as str]))
 
 ;; SWiss ARmy Knife - Your everyday clojure toolbelt!
 ;; Copyright 2024 - Stan Verberkt (verberktstan@gmail.com)
@@ -211,3 +213,34 @@
               (-> state
                   (swap! assoc args (apply f args))
                   (get args))))))))
+
+(defn- with-levenshtein [source-key target-key]
+  (fn with-levenshtein* [target-synonym]
+    (let [distance (levenshtein (name source-key) (name target-synonym))]
+      {::source-key           source-key
+       ::target-key           target-key
+       ::levenshtein-distance distance})))
+
+(defn auto-kmap
+  "Returns a suggested mapping of keys. Result is to be used as 'kmap' argument
+  to clojure.set/rename-keys"
+  ([kseq-or-map-a map-b]
+   (let [keys-a (cond-> kseq-or-map-a (map? kseq-or-map-a) keys)]
+     (-> keys-a coll? assert)
+     (-> map-b map? assert)
+     (->> (for [source-key            keys-a
+                [target-key synonyms] map-b]
+            (let [targets (or (seq synonyms) [target-key])]
+              (map (with-levenshtein source-key target-key) targets)))
+          (apply concat)
+          (sort-by ::levenshtein-distance)
+          (reduce (fn [m {::keys [source-key target-key] :as entry}]
+                    (let [is-new-mapping      (not (contains? m source-key))
+                          contains-duplicates (some-> m vals seq set (contains? target-key))]
+                      (when (and is-new-mapping contains-duplicates)
+                        (throw
+                          (ex-info "Contains duplicate mappings! Provide synonyms to address duplications."
+                                   {:m m :entry entry})))
+                      (cond-> m
+                        is-new-mapping
+                        (assoc source-key target-key)))) {})))))

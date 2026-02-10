@@ -2,7 +2,9 @@
  ;; Clojure standard library
  {org.clojure/clojure    {:mvn/version "1.11.0"}
   org.clojure/core.async {:mvn/version "1.6.681"}
-  org.clojure/data.csv   {:mvn/version "1.0.1"}} ;; NOTE: For testing CSV input/output only..
+  clj-fuzzy {:mvn/version "0.4.1"}
+  org.clojure/data.csv   {:mvn/version "1.0.1"}  ;; NOTE: For testing CSV input/output only..
+  }
  :aliases
  {:repl/basic
   {:extra-deps {nrepl/nrepl       {:mvn/version "1.0.0"}

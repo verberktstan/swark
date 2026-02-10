@@ -1,5 +1,6 @@
 (ns swark.core-test
   (:require [clojure.edn :as edn]
+            [clojure.set :as set]
             [clojure.test :refer [are deftest is testing]]
             [swark.core :as sut]))
 
@@ -148,3 +149,33 @@
     (testing "Flush the complete cache"
       (is (nil? (random :flush)))
       (is (not= y (random 9999))))))
+
+;; TODO: Test thrown exceptions as well!
+(deftest auto-kmap
+  (let [keys-a    ["name" "ID" "dateOfBirth"]
+        keys-b    {:name nil :id nil :date-of-birth nil}
+        result-ab (sut/auto-kmap keys-a keys-b)
+        keys-c    ["name" "ID" "dateOfBirth" "email"]
+        keys-d    {:user/name nil :user/id nil :user/date-of-birth nil :user/email-address #{"email"}}
+        result-cd (sut/auto-kmap keys-c keys-d)]
+    (testing "Returns a map"
+      (is (map? result-ab)))
+    (testing "Returns a sensible mapping from source-keys to target-keys"
+      (is (= {"name" :name "ID" :id "dateOfBirth" :date-of-birth}
+             result-ab))
+      (is (= {"name" :user/name "ID" :user/id "dateOfBirth" :user/date-of-birth "email" :user/email-address}
+             result-cd)))
+    (testing "Uses overiddes to solve duplicate key conflicts"
+      (is {"name1" :last-name "name2" :first-name}
+          (sut/auto-kmap ["name1" "name2"]
+                         {:first-name #{"name2"} :last-name #{"name1"}})))
+    (testing "See it in action with set/rename-keys"
+      (is (= {:user-name "Username" :city "Lionsend" :year-of-birth 1992}
+             (let [input-map {"userName" "Username" "city" "Lionsend" "yearOfBirth" 1992}]
+               (->> (sut/auto-kmap input-map {:user-name nil :city nil :year-of-birth nil})
+                    (set/rename-keys input-map)))))
+      (is (= {:first-name "Firstname" :last-name "Lastname" :city "Lionsend" :year-of-birth 1992}
+               (let [input-map {:name1 "Lastname" :name2 "Firstname" :city "Lionsend" :yearOfBirth 1992}]
+                 (->> (sut/auto-kmap input-map
+                                     {:first-name #{:name2} :last-name #{"name1"} :city nil :year-of-birth nil})
+                      (set/rename-keys input-map))))))))
