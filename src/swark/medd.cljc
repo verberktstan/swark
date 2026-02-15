@@ -28,20 +28,21 @@
    (let [[entity-attribute entity-value :as entity] (find record entity-key)]
      (assert entity)
      (reduce-kv
-      (fn [rows attribute value]
-        (conj rows {:entity-attribute entity-attribute
-                    :entity-value     entity-value
-                    :attribute        attribute
-                    :value            value}))
-      nil
-      (dissoc record entity-key))))
+       (fn [rows attribute value]
+         (conj rows {:entity-attribute entity-attribute
+                     :entity-value     entity-value
+                     :attribute        attribute
+                     :value            value}))
+       nil
+       (dissoc record entity-key))))
   ([entity-key record db-rows]
    (let [entity (find record entity-key)]
      (assert entity)
      (let [existing-record (get (combine-rows entity db-rows) entity)
-           difff           (zipmap [:a :b :overlap] (diff existing-record record))
-           record'         (reduce dissoc record (some-> difff :overlap keys))]
-       (upserted-rows entity-key (into record' [entity]))))))
+           [_ _ overlap]   (diff existing-record record)]
+       (upserted-rows
+         entity-key
+         (into (reduce dissoc record (some-> overlap keys)) [entity]))))))
 
 ;; Read
 ;; Archive
