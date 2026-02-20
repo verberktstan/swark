@@ -17,7 +17,8 @@
               [{:entity-attribute :user/id :entity-value 1 :attribute :user/name :value "User Name"}
                {:entity-attribute :user/id :entity-value 2 :attribute :user/name :value "Second User"}])))))
 
-(def gen-named (gen/such-that #(-> % name count (> 3)) (gen/one-of [gen/keyword gen/string gen/symbol]) 99))
+
+(def gen-named (gen/such-that #(some-> % name count (> 3)) (gen/one-of [gen/keyword gen/string gen/symbol]) 99))
 
 (def gen-value (gen/one-of [gen/string-alphanumeric gen/small-integer]))
 (def gen-row (gen/hash-map :entity-attribute gen-named
