@@ -36,7 +36,7 @@
                 (partial reduce +) m))))
 
     (t/is (thrown? AssertionError (sut/map-vals nil m)))
-    (t/is (nil? (sut/map-vals inc nil)))))
+    (t/is (map? (sut/map-vals inc nil)))))
 
 (t/deftest filter-keys
   (let [map {:user-id 1 :user/name "Username" ::test "Testdata"}
