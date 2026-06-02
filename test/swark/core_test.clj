@@ -25,7 +25,7 @@
               {:id 34 :name "not-included!"}])))))
 
     (t/is (thrown? AssertionError (sut/key-by nil records)))
-    (t/is (nil? (sut/key-by :id nil)))))
+    (t/is (map? (sut/key-by :id nil)))))
 
 (t/deftest map-vals
   (let [m {:a [1 1] :b [1 2] :c [2 3 5] :d [3 5 8 13]} #_{:a 1 :b 2 :c 3}]
