@@ -17,7 +17,7 @@
    {:pre [(ifn? f)]}
    (comp (map (juxt f identity)) (filter first)))
   ([f coll]
-   (into {} (key-by f) coll))
+   (key-by {} f coll))
   ([a f coll]
    {:pre [(associative? a)]}
    (into a (key-by f) coll)))
