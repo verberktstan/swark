@@ -2,7 +2,7 @@
   (:require [clojure.string :as str]))
 
 ;; SWiss ARmy Knife - Your everyday clojure toolbelt!
-;; Copyright 2024 - Stan Verberkt (verberktstan@gmail.com)
+;; Copyright 2024-2026 - Stan Verberkt (verberktstan@gmail.com)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Regarding collections
@@ -27,17 +27,16 @@
 
 (defn map-vals
   {:added "0.1.0"
-   :arglist '([f item])
-   :doc "Returns item with f mapped across it's values. Returns a transducer
-        when no collection is provided.
-        `(map-vals count {:a [:b c] :d [:e]}) => {:a 2 :d 1}`"}
+   :arglists '([f] [f item])
+   :doc "Returns item with f mapped across its values. Returns a transducer
+  when called with f only.
+  `(map-vals count {:a [:b :c] :d [:e]}) => {:a 2 :d 1}`"}
   ([f]
+   {:pre [(ifn? f)]}
    (map (juxt key (comp f val))))
   ([f item]
-   (when item
-     (-> f ifn? assert)
-     (-> item map? assert)
-     (into {} (map-vals f) item))))
+   {:pre [(ifn? f)]}
+   (into {} (map-vals f) item)))
 
 (defn filter-keys
   {:added "0.1.3"
