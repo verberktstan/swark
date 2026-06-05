@@ -210,7 +210,8 @@
           (reset! state nil)
 
           :else
-          (or (get @state args)
-              (-> state
-                  (swap! assoc args (apply f args))
-                  (get args))))))))
+          (if (contains? @state args)
+            (get @state args)
+            (-> state
+                (swap! assoc args (apply f args))
+                (get args))))))))
