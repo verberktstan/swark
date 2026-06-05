@@ -179,10 +179,8 @@
     (reduce-kv
       (fn [acc k v]
         (if-let [predicate (get spec k)]
-          (let [result (check predicate v)]
-            (if (::result result)
-              acc
-              (assoc acc k result)))
+          (let [{{res ::result} :as result} (check predicate v)]
+            (cond-> acc (nil? res) (assoc k res)))
           acc))
       nil
       input)))
