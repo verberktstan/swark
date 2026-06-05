@@ -45,7 +45,8 @@
       {:user-id 1}            (complement namespace)
       {:user/name "Username"} (comp #{"user"} namespace)
       {::test "Testdata"}     (comp #{ns-str} namespace)
-      {}                     (comp #{"unknown"} namespace))))
+      {}                     (comp #{"unknown"} namespace)
+      map                    nil)))
 
 (t/deftest select-namespaced
   (let [map {:user-id 1 :user/name "Username" ::test "Testdata"}]
