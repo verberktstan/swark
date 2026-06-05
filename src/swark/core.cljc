@@ -180,7 +180,7 @@
       (fn [acc k v]
         (if-let [predicate (get spec k)]
           (let [{res ::result :as result} (check predicate v)]
-            (cond-> acc (not res) (assoc k res)))
+            (cond-> acc (not res) (assoc k result)))
           acc))
       nil
       input)))
