@@ -45,10 +45,11 @@
    logical true on evaluation of (pred key).
    `(filter-keys {:a 1 \"b\" 2} keyword?) => {:a 1}`"}
   [map pred]
-  (cond->> map
-    pred    (filter (comp pred key))
-    map     seq
-    :always (into {})))
+  (reduce-kv
+    (fn filter-key* [acc k v]
+      (cond-> acc (or (not pred) (pred k)) (assoc k v)))
+    {}
+    map))
 
 (declare jab)
 
