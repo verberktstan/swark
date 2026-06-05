@@ -1,6 +1,12 @@
 # Changelog
 
-## [0.1.52] - unreleased
+## [0.1.53] - unreleased
+
+### Changed
+
+- `swark.core/filter-keys` - Now always returns a map; previously could return `nil` in edge cases.
+
+## [0.1.52] - released
 
 ### Added
 
