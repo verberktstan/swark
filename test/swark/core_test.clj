@@ -146,12 +146,12 @@
   (t/testing "accepts memoir as memoizer, gaining :flush capability"
     (binding [*square* (sut/defmemo square sut/memoir [x] (* x x))]
       (t/is (= 25 (*square* 5)))
-      (*square* :flush)
+      (*square* sut/flush-signal)
       (let [call-count (atom 0)]
         (binding [*square* (sut/memoir (fn [x] (swap! call-count inc) (* x x)))]
           (*square* 5)
           (*square* 5)
-          (*square* :flush 5)
+          (*square* sut/flush-signal 5)
           (*square* 5)
           (t/are [result expr] (= result expr)
             2  @call-count
@@ -165,16 +165,22 @@
       (t/is (= x (random 999)))
       (t/is (= y (random 9999))))
     (t/testing "Flush a specific subset of the cache"
-      (t/is (= x (random :flush 999))) ; Returns the flushed subset of the cache
-      (t/is (not= x (random 999))) ; Caches a new result
-      (t/is (= (random 999) (random 999))) ; Returns the new cached input
-      (t/is (nil? (random :flush 99)))) ; Returns nil if the cache to flush subset is nonexistent
+      (t/is (= x (random sut/flush-signal 999)))
+      (t/is (not= x (random 999)))
+      (t/is (= (random 999) (random 999)))
+      (t/is (nil? (random sut/flush-signal 99))))
     (t/testing "Caches nil return values"
       (let [call-count (atom 0)
             nil-fn     (sut/memoir (fn [x] (swap! call-count inc) nil))]
         (nil-fn :a)
         (nil-fn :a)
         (t/is (= 1 @call-count))))
+    (t/testing ":flush keyword can now be cached as a legitimate argument"
+      (let [call-count (atom 0)
+            f          (sut/memoir (fn [x] (swap! call-count inc) x))]
+        (f :flush)
+        (f :flush)
+        (t/is (= 1 @call-count))))
     (t/testing "Flush the complete cache"
-      (t/is (nil? (random :flush)))
+      (t/is (nil? (random sut/flush-signal)))
       (t/is (not= y (random 9999))))))
