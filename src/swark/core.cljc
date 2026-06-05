@@ -184,7 +184,7 @@
               acc
               (assoc acc k result)))
           acc))
-      {}
+      nil
       input)))
 
 (def valid-map? (complement invalid-map?))
