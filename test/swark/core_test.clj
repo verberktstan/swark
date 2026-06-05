@@ -156,6 +156,12 @@
       (t/is (not= x (random 999))) ; Caches a new result
       (t/is (= (random 999) (random 999))) ; Returns the new cached input
       (t/is (nil? (random :flush 99)))) ; Returns nil if the cache to flush subset is nonexistent
+    (t/testing "Caches nil return values"
+      (let [call-count (atom 0)
+            nil-fn     (sut/memoir (fn [x] (swap! call-count inc) nil))]
+        (nil-fn :a)
+        (nil-fn :a)
+        (t/is (= 1 @call-count))))
     (t/testing "Flush the complete cache"
       (t/is (nil? (random :flush)))
       (t/is (not= y (random 9999))))))
