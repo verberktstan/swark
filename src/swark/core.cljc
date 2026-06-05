@@ -183,6 +183,16 @@
 
 (def valid-map? (complement invalid-map?))
 
+(defmacro defmemo
+  {:added "0.1.52"
+   :arglists '([name & fndef])
+   :doc "Defines a memoized function and returns it.
+   `(defmemo my-fn [x] (* x x)) => (def my-fn (memoize (fn [x] (* x x))))`"}
+  [name & fndef]
+  `(let [memoized-fn# (memoize (fn ~@fndef))]
+     (def ~name memoized-fn#)
+     memoized-fn#))
+
 (defn memoir
   "Like memoize but with flush functionality."
   [f]
