@@ -198,12 +198,16 @@
        (def ~name memoized-fn#)
        memoized-fn#)))
 
+(def flush-signal
+  "Sentinel value. Pass as the first argument to a memoir fn to trigger cache eviction."
+  (Object.))
+
 (defn memoir
   "Like memoize but with flush functionality."
   [f]
   (let [state (atom nil)]
     (fn memoir* [& args]
-      (let [flush?     (-> args first #{:flush})
+      (let [flush?     (identical? (first args) flush-signal)
             flush-args (-> args rest seq)]
         (cond
           (and flush? flush-args)
