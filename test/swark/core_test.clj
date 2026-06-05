@@ -142,6 +142,19 @@
           (*square* 5)
           (t/are [result expr] (= result expr)
             1  @call-count
+            25 (*square* 5))))))
+  (t/testing "accepts memoir as memoizer, gaining :flush capability"
+    (binding [*square* (sut/defmemo square sut/memoir [x] (* x x))]
+      (t/is (= 25 (*square* 5)))
+      (*square* :flush)
+      (let [call-count (atom 0)]
+        (binding [*square* (sut/memoir (fn [x] (swap! call-count inc) (* x x)))]
+          (*square* 5)
+          (*square* 5)
+          (*square* :flush 5)
+          (*square* 5)
+          (t/are [result expr] (= result expr)
+            2  @call-count
             25 (*square* 5)))))))
 
 (t/deftest memoir
