@@ -173,7 +173,7 @@
   [spec input]
   (assert (map? spec) "Spec should be a map!")
   (assert (every? ifn? (vals spec)) "All vals in spec should implement IFn!")
-  (assert (map? input) "Input should be a map!")
+  (some-> input map? (assert "Input should be a map!"))
   (if (nil? input)
     ::nil
     (reduce-kv
