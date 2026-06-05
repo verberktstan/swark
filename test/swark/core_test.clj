@@ -130,17 +130,19 @@
 (t/deftest defmemo
   (binding [*square* (sut/defmemo square [x] (* x x))]
     (t/testing "defines a var bound to a function with correct behavior"
-      (t/is (= 4  (*square* 2)))
-      (t/is (= 9  (*square* 3)))
-      (t/is (= 25 (*square* 5))))
+      (t/are [result input] (= result (*square* input))
+        4  2
+        9  3
+        25 5))
     (t/testing "the function is memoized"
       (let [call-count (atom 0)]
         (binding [*square* (memoize (fn [x] (swap! call-count inc) (* x x)))]
           (*square* 5)
           (*square* 5)
           (*square* 5)
-          (t/is (= 1 @call-count))
-          (t/is (= 25 (*square* 5))))))))
+          (t/are [result expr] (= result expr)
+            1  @call-count
+            25 (*square* 5)))))))
 
 (t/deftest memoir
   (let [random (sut/memoir rand-int)
