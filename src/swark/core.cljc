@@ -185,13 +185,18 @@
 
 (defmacro defmemo
   {:added "0.1.52"
-   :arglists '([name & fndef])
-   :doc "Defines a memoized function and returns it.
-   `(defmemo my-fn [x] (* x x)) => (def my-fn (memoize (fn [x] (* x x))))`"}
-  [name & fndef]
-  `(let [memoized-fn# (memoize (fn ~@fndef))]
-     (def ~name memoized-fn#)
-     memoized-fn#))
+   :arglists '([name & fndef] [name memo & fndef])
+   :doc "Defines a memoized function and returns it. Accepts an optional memoizer
+   as the second argument, defaulting to memoize.
+   `(defmemo my-fn [x] (* x x))` uses memoize.
+   `(defmemo my-fn memoir [x] (* x x))` uses memoir, gaining :flush capability."}
+  [name & args]
+  (let [[memo fndef] (if (symbol? (first args))
+                       [(first args) (rest args)]
+                       [`memoize args])]
+    `(let [memoized-fn# (~memo (fn ~@fndef))]
+       (def ~name memoized-fn#)
+       memoized-fn#)))
 
 (defn memoir
   "Like memoize but with flush functionality."
