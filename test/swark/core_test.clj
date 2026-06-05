@@ -125,6 +125,23 @@
     #"All vals in spec should implement IFn" {:id "not IFn"} {:id -1} ; Spec
     #"Input should be a map!" {:id nat-int?} false)))
 
+(def ^:dynamic *square* nil)
+
+(t/deftest defmemo
+  (binding [*square* (sut/defmemo square [x] (* x x))]
+    (t/testing "defines a var bound to a function with correct behavior"
+      (t/is (= 4  (*square* 2)))
+      (t/is (= 9  (*square* 3)))
+      (t/is (= 25 (*square* 5))))
+    (t/testing "the function is memoized"
+      (let [call-count (atom 0)]
+        (binding [*square* (memoize (fn [x] (swap! call-count inc) (* x x)))]
+          (*square* 5)
+          (*square* 5)
+          (*square* 5)
+          (t/is (= 1 @call-count))
+          (t/is (= 25 (*square* 5))))))))
+
 (t/deftest memoir
   (let [random (sut/memoir rand-int)
         x      (random 999) ; The result is cached
