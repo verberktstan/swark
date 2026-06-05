@@ -164,23 +164,28 @@
   {::predicate predicate ::input input ::result (predicate input)})
 
 (defn invalid-map?
- {:added "0.1.1"
+  {:added "0.1.1"
    :arglist '([spec input])
    :doc "Returns nil if input is valid according to spec. When input is invalid,
    returns a map reporting how it is invalid. When input is nil, returns the
    special keyword ::nil.
    `(valid-map? {:a string?} {:a 12}) ≠> {::predicate string? ::input 12 ::result false}`"}
   [spec input]
-  (-> spec map? (assert "Spec should be a map!"))
-  (assert (->> spec vals (every? ifn?)) "All vals in spec should implement IFn!")
-  (some-> input map? (assert "Input should be a map!"))
+  (assert (map? spec) "Spec should be a map!")
+  (assert (every? ifn? (vals spec)) "All vals in spec should implement IFn!")
+  (assert (map? input) "Input should be a map!")
   (if (nil? input)
-    ::nil ; Explicit inform that input is nil
-    (some->> input
-      (merge-with check spec)
-      (remove (comp ::result val))
-      seq
-      (into {}))))
+    ::nil
+    (reduce-kv
+      (fn [acc k v]
+        (if-let [predicate (get spec k)]
+          (let [result (check predicate v)]
+            (if (::result result)
+              acc
+              (assoc acc k result)))
+          acc))
+      {}
+      input)))
 
 (def valid-map? (complement invalid-map?))
 
