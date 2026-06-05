@@ -70,7 +70,7 @@
                          (map #(assoc %2 :person/name %1) new-names))
             updated (transact! sut/upsert-items props persons)]
         (testing "returns the updated items"
-          (is (-> updated count #{3}))
+          (is (-> updated count (= 3)))
           (is (->> updated (map :person/name) set (= (set new-names))))))
       (let [persons (->> result
                          shuffle
