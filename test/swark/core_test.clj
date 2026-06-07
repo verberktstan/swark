@@ -111,7 +111,7 @@
 
     ;; Cases with custom replacements/ignore-match
     :h-ell-o1       [" H ell-o1"]
-    :test/h-ell-o   ["test/h ello"]
+    :test/h-ell-o   ["test/h ell o"]
     :he--o          ["he!!o" :replacement "-" :ignore-match #"!"]
     :hello          ["he!!o" :replacement "l" :ignore-match #"!"]
     :test/hello     ["test/he!!o" :replacement "l" :ignore-match #"!"]
