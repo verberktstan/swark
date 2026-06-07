@@ -143,18 +143,18 @@
 
 ;; TODO: Support namespaced keywords :-)
 (defn ->keyword
-  "Coerces `input` to a keyword, replacing whitespace with dashes by default."
-  ([input]
-   (->keyword nil input))
-  ([ignore-match input]
-   (->keyword ignore-match "-" input))
-  ([ignore-match replacement input]
-   (if (keyword? input)
-     input
-     (let [match        (or ignore-match #"\s")
-           replacement' (or replacement "-")]
-       (when input
-         (some-> input name str/trim str/lower-case (str/replace match replacement') keyword))))))
+  "Coerces `input` to a keyword, replacing whitespace with dashes by default.
+  Supports optional keyword arguments:
+  - `:match`: The regex pattern to replace (default: #\"\\s\").
+  - `:replacement`: The string to replace matches with (default: \"-\").
+  Example: `(->keyword \"my input\" :replacement \"_\")` => `:my_input`"
+  [input & {:keys [replacement match] :or {replacement "-" match #"\s"}}]
+  (if (keyword? input)
+    input
+    (when input
+      (some-> input name
+        str/trim str/lower-case
+        (str/replace match replacement) keyword))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Minimalistic spec
