@@ -110,7 +110,7 @@
     :symbol ['symbol]
 
     ;; Cases with custom replacements/ignore-match
-    :h-ell-o1       [" Hell-o1"]
+    :h-ell-o1       [" H ell-o1"]
     :test/h-ell-o   ["test/h ello"]
     :he--o          ["he!!o" :replacement "-" :ignore-match #"!"]
     :hello          ["he!!o" :replacement "l" :ignore-match #"!"]
