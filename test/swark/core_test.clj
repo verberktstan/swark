@@ -103,16 +103,19 @@
 
 (t/deftest ->keyword
   (t/are [result args] (= result (apply sut/->keyword args))
-    :test         [:test]
-    ::test        [::test]
-    :hello        ["hello"]
-    :symbol       ['symbol]
-    :h-ell-o1     [" H ell-o1"]
-    :test/h-ell-o ["test/h ell o"]
-    :he--o        [#"!" "he!!o"]
-    :hello        [#"!" "l" "he!!o"]
-    :test/hello   [#"!" "l" "test/he!!o"]
-    :hello        [#"[0-9\s\-]" ""  " H ell-o1"]))
+    ;; Existing cases (no keyword args needed)
+    :test   [:test]
+    ::test  [::test]
+    :hello  ["hello"]
+    :symbol ['symbol]
+
+    ;; Cases with custom replacements/ignore-match
+    :h-ell-o1       [" H ell-o1"]
+    :test/h-ell-o   ["test/h ell o"]
+    :he--o          ["he!!o" :replacement "-" :match #"!"]
+    :hello          ["he!!o" :replacement "l" :match #"!"]
+    :test/hello     ["test/he!!o" :replacement "l" :match #"!"]
+    :hello          [" H ell-o1" :replacement "" :match #"[0-9\s\-]"]))
 
 (t/deftest spec
   (let [report #::sut{:predicate nat-int? :input -1 :result false}]
