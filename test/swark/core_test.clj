@@ -112,10 +112,10 @@
     ;; Cases with custom replacements/ignore-match
     :h-ell-o1       [" H ell-o1"]
     :test/h-ell-o   ["test/h ell o"]
-    :he--o          ["he!!o" :replacement "-" :ignore-match #"!"]
-    :hello          ["he!!o" :replacement "l" :ignore-match #"!"]
-    :test/hello     ["test/he!!o" :replacement "l" :ignore-match #"!"]
-    :hello          [" H ell-o1" :replacement "" :ignore-match #"[0-9\s\-]"]))
+    :he--o          ["he!!o" :replacement "-" :match #"!"]
+    :hello          ["he!!o" :replacement "l" :match #"!"]
+    :test/hello     ["test/he!!o" :replacement "l" :match #"!"]
+    :hello          [" H ell-o1" :replacement "" :match #"[0-9\s\-]"]))
 
 (t/deftest spec
   (let [report #::sut{:predicate nat-int? :input -1 :result false}]
