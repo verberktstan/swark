@@ -5,7 +5,8 @@
   org.clojure/core.async {:mvn/version "1.6.681"}
   org.clojure/data.csv   {:mvn/version "1.0.1"}} ;; NOTE: For testing CSV input/output only..
  :aliases
- {:repl/basic
+ {:dev {:jvm-opts ["-Ddev=true"]}
+  :repl/basic
   {:extra-deps {nrepl/nrepl       {:mvn/version "1.0.0"}
                 cider/cider-nrepl {:mvn/version "0.30.0"}}
    :main-opts  ["-m" "nrepl.cmdline"
