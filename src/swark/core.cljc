@@ -1,5 +1,6 @@
 (ns swark.core
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [spec.swark.core-spec]))
 
 ;; SWiss ARmy Knife - Your everyday clojure toolbelt!
 ;; Copyright 2024-2026 - Stan Verberkt (verberktstan@gmail.com)
@@ -12,7 +13,11 @@
    :arglists '([f] [f coll] [a f coll])
    :doc "Returns a map of {(f item) item} for each item in coll, omitting falsy keys.
   Returns a transducer when called with f only.
-  `(key-by :id [{:id 12} {:id 34}]) => {12 {:id 12} 34 {:id 34}}`"}
+  `(key-by :id [{:id 12} {:id 34}]) => {12 {:id 12} 34 {:id 34}}`"
+   :ret ::spec.swark.core-spec/key-by-result
+   :fn (s/or :1arg :spec.swark.core-spec/key-by-1arg
+              :2arg :spec.swark.core-spec/key-by-2arg
+              :3arg :spec.swark.core-spec/key-by-3arg)}
   ([f]
    {:pre [(ifn? f)]}
    (comp (map (juxt f identity)) (filter first)))
