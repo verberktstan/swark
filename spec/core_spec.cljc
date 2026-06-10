@@ -13,9 +13,9 @@
 
 ;; Multi-spec for `key-by`
 (s/def ::key-by (s/multi-spec core/key-by :arglists))
-(s/def :swark.core/key-by-1arg ::key-by-transducer)
-(s/def :swark.core/key-by-2arg ::key-by-2arg)
-(s/def :swark.core/key-by-3arg ::key-by-3arg)
+(s/def ::key-by-1arg ::key-by-transducer)
+(s/def ::key-by-2arg ::key-by-2arg)
+(s/def ::key-by-3arg ::key-by-3arg)
 
 ;; Instrument in development
 #?(:clj
