@@ -54,17 +54,6 @@ Atomic authorization. Generate a token for a map, in conjunction with a password
 - `disclose`: Returns map item with it's token associated with ::authom/token. Useful for serializing the hashed token.
 - `conceal`: Returns the map item with it's token moved to it's metadata. Useful for parsing a persisted record.
 
-### swark.cedric
-
-- `Mem.`: Creates a new instance of the in-memory implementation
-- `Csv.`: Creates a new instance the implementation of the csv backend
-- `make-connection`: Starts an atomic interface connection for a database.
-- `upsert-items`: Creates or updates items in the database
-- `find-by-entity`: Returns one database record found by its entity e.g. `[:user/id 123]`
-- `find-by-primary-key`: Returns database records found by its primary key e.g. `#{:user/id}`
-- `read-items`: Returns all (filtered) records from the database
-- `archive-items`: Marks items as archived
-
 ### swark.atomic
 
 - `atomic`: Returns a map with in- and output async channels to provide atomic interactions for side-effecting functionality.
